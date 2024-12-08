@@ -116,6 +116,7 @@ def main():
         st.write(f"Remaining Cutted L-Patti: {results.l_patti_remaining} ({results.l_patti_cut_size:.2f}ft/piece)")
         st.write(f"Fasteners needed: {results.fasteners} (1 per L-patti)")
         st.write(f"Fastener clips needed: {results.fastener_clips} (1 per fastener)")
+        st.write(f"Nut Bolt Pair needed: {results.fastener_clips} (1 per Fastener Clip)")  # New line
         st.write(f"Connecting clips needed: {results.connecting_clips} (at Main-Cross intersections)")
         
         # Screws with specific counts
