@@ -103,7 +103,7 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     SPACING = 2  # feet between centers
     LAST_THRESHOLD = 2  # minimum required distance from last wall
     
-    longer_wall = max(length1, length2)  # Use length for positioning
+    longer_wall = max(length1, length2)
     shorter_wall = min(length1, length2)
     shorter_width = min(width1, width2)  # Use width for cross lengths
     
@@ -111,10 +111,9 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     positions = []
     current_pos = FIRST_DISTANCE
     
-    # Keep adding positions while we have enough space for a cross
-    while current_pos <= longer_wall:
-        if longer_wall - current_pos >= LAST_THRESHOLD:
-            positions.append(current_pos)
+    # Keep adding positions until longer wall length
+    while current_pos <= longer_wall - LAST_THRESHOLD:
+        positions.append(current_pos)
         current_pos += SPACING
     
     num_rods = len(positions)
@@ -122,9 +121,11 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     # Calculate last cross length
     if num_rods > 0:
         last_pos = positions[-1]
-        # If last position is beyond shorter wall, need to cut the cross
+        # If last cross would extend beyond shorter wall
         if last_pos > shorter_wall:
-            last_cross_length = shorter_width
+            # Calculate how much shorter it needs to be
+            overhang = last_pos - shorter_wall
+            last_cross_length = shorter_width - overhang
         else:
             last_cross_length = shorter_width
     else:
