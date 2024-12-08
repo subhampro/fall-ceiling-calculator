@@ -104,7 +104,7 @@ def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, floa
     LAST_THRESHOLD = 2  # minimum required distance from last wall
     
     longer_wall = max(width1, width2)
-    shorter_width = min(dimensions.width1, dimensions.width2)  # This is for cross length
+    shorter_wall = min(width1, width2)  # Fix: use parameters instead of accessing dimensions
     
     # Calculate positions of crosses
     positions = []
@@ -118,8 +118,8 @@ def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, floa
     
     num_rods = len(positions)
     
-    # All crosses should be cut to shorter width
-    last_cross_length = shorter_wall  # Fix: use shorter_wall instead
+    # All crosses should be cut to shorter wall width
+    last_cross_length = shorter_wall
     
     return num_rods, last_cross_length, shorter_wall
 
@@ -224,7 +224,5 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         l_patti_cuts=l_patti_cuts,
         l_patti_remaining=remaining_cuts,
         l_patti_cut_size=cut_size,
-        last_cross_length=round(last_cross_length, 2)
-    )
         last_cross_length=round(last_cross_length, 2)
     )
