@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-from math import ceil  # Add this import
-from utils import RoomDimensions, calculate_ceiling_requirements
+from math import ceil
 from decimal import Decimal
 import base64
 from io import BytesIO
+from utils import RoomDimensions, calculate_ceiling_requirements
 
 def convert_to_feet(value, unit):
     conversion = {

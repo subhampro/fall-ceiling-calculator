@@ -62,49 +62,46 @@ def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
     
     return full_rods, round(extra_length, 2)
 
-def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[int, list[float], float, str]:
+def calculate_main_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, list[float], float, str]:
     FIRST_DISTANCE = 2
     SPACING = 4
     STANDARD_LENGTH = 12
     WALL_THRESHOLD = 3.5
-    OVERLAP_INCHES = 5  # 5 inch overlap
-    OVERLAP = OVERLAP_INCHES / 12  # convert to feet
+    OVERLAP_INCHES = 5
+    OVERLAP = OVERLAP_INCHES / 12
     
     positions = []
     current_pos = FIRST_DISTANCE
     
-    while current_pos < width:
+    while current_pos < width1:
         positions.append(current_pos)
         current_pos += SPACING
 
-    remaining_space = width - positions[-1]
+    remaining_space = width1 - positions[-1]
     if remaining_space >= WALL_THRESHOLD:
-        positions.append(min(width, positions[-1] + SPACING))
+        positions.append(min(width1, positions[-1] + SPACING))
     
     main_lengths = []
     total_extra_needed = 0.0
     extra_rods_needed = 0
     
     for pos in positions:
-        length_at_pos = length1 + (length2 - length1) * (pos / width)
+        # Calculate the percentage of distance along the width
+        percentage = pos / width1
+        
+        # Interpolate length based on position
+        length_at_pos = length1 + (length2 - length1) * (pos / width1)
         main_lengths.append(length_at_pos)
+        
         if length_at_pos > STANDARD_LENGTH:
-            # Calculate extra length needed
             extra_length = length_at_pos - STANDARD_LENGTH
             total_extra_needed += extra_length
-            
-            # Calculate number of additional rods needed
-            # For 20ft: need 4 rods total (3 full + 1 partial) = 3 extra rods
             additional_rods_needed = ceil(extra_length / STANDARD_LENGTH)
             if additional_rods_needed > 0:
-                # Add overlaps for joins
                 total_extra_needed += (additional_rods_needed * OVERLAP)
             extra_rods_needed += additional_rods_needed
     
-    # Calculate total main rods needed (base positions + extra rods)
     main_count = len(positions) + extra_rods_needed
-    
-    # Format the extra needed string with FT unit
     extra_needed_str = f"{total_extra_needed:.2f} FT" if total_extra_needed > 0 else ""
     
     return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, extra_needed_str
@@ -182,12 +179,11 @@ def calculate_room_area(dimensions: RoomDimensions) -> float:
 def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalculation:
     params_full, params_extra = calculate_parameters(dimensions)
     
-    max_width = max(dimensions.width1, dimensions.width2)
-    
     main_rods_count, main_lengths, last_main_length, extra_main_needed = calculate_main_rods(
         dimensions.length1,
         dimensions.length2,
-        max_width
+        dimensions.width1,
+        dimensions.width2
     )
     cross_rods_count, cross_lengths, last_cross_length = calculate_cross_rods(
         dimensions.length1,
@@ -202,7 +198,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     screws = ceil(total_parameter_length) * 12
     
-    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(max_width, dimensions.linter_spacing)
+    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(max(dimensions.width1, dimensions.width2), dimensions.linter_spacing)
     
     black_screws = l_patti_cuts * 2
     
