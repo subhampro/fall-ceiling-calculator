@@ -1,133 +1,93 @@
 import streamlit as st
-from decimal import Decimal, ROUND_HALF_UP
+import pandas as pd
+from utils import RoomDimensions, calculate_ceiling_requirements
+from decimal import Decimal
+import base64
+from io import BytesIO
 
-def convert_to_feet(value, unit='ft'):
-    return value  # All inputs are assumed to be in feet now
-
-def convert_result(value, to_unit):
-    # Precise conversion factors
-    conversion_factors = {
-        'ft': Decimal('1.0'),
-        'mm': Decimal('304.8'),  # Exact conversion factor for feet to mm
-        'cm': Decimal('30.48')   # Exact conversion factor for feet to cm
+def convert_to_feet(value, unit):
+    conversion = {
+        'ft': 1.0,
+        'mm': 0.00328084,
+        'cm': 0.0328084,
+        'inches': 0.0833333,
+        'm': 3.28084,
+        'yd': 3
     }
+    return value * conversion[unit]
+
+def generate_excel_download(calc_results):
+    df = pd.DataFrame({
+        'Item': [
+            'Parameters (Full 12ft)',
+            'Parameters (Extra Length)',
+            'Main Rods',
+            'Cross Rods',
+            'Connecting Clips',
+            'Screws',
+            'Total Parameter Length'
+        ],
+        'Quantity': [
+            calc_results.parameters_full,
+            f"{calc_results.parameters_extra:.2f} ft",
+            calc_results.main_rods,
+            calc_results.cross_rods,
+            calc_results.connecting_clips,
+            calc_results.screws,
+            f"{calc_results.total_parameter_length:.2f} ft"
+        ]
+    })
     
-    # Convert to Decimal for precise calculation
-    value = Decimal(str(value))
-    result = value * conversion_factors[to_unit]
-    # Round to 3 decimal places using ROUND_HALF_UP
-    return float(result.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP))
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Ceiling Calculation')
+    
+    return buffer.getvalue()
 
 def main():
-    st.title('Ceiling Rod Calculation')
+    st.title('False Ceiling Calculator')
     
-    # Add unit selection at the top
-    input_unit = st.selectbox(
-        'Input measurements in:', 
-        ['ft', 'mm', 'cm'],
-        format_func=lambda x: {
-            'ft': 'Feet (ft)',
-            'mm': 'Millimeters (mm)',
-            'cm': 'Centimeters (cm)'
-        }[x],
-        key="input_unit"
+    unit = st.selectbox(
+        'Select measurement unit:',
+        ['ft', 'mm', 'cm', 'inches', 'm', 'yd']
     )
     
-    st.write("")  # Add spacing
-    
-    # Add default values and unique keys to input fields
+    st.subheader('Room Measurements')
     col1, col2 = st.columns(2)
     
     with col1:
-        length1 = st.number_input(
-            f'Length 1 ({input_unit})', 
-            value=0.000,
-            min_value=0.000,
-            step=0.001 if input_unit == 'ft' else 1.0,
-            format="%.3f" if input_unit == 'ft' else "%.1f",
-            key="length1_input"
-        )
-        width1 = st.number_input(
-            f'Width 1 ({input_unit})', 
-            value=0.000,
-            min_value=0.000,
-            step=0.001 if input_unit == 'ft' else 1.0,
-            format="%.3f" if input_unit == 'ft' else "%.1f",
-            key="width1_input"
-        )
+        length1 = st.number_input(f'Wall 1 Length ({unit})', min_value=0.0)
+        width1 = st.number_input(f'Width 1 ({unit})', min_value=0.0)
     
     with col2:
-        length2 = st.number_input(
-            f'Length 2 ({input_unit})', 
-            value=0.000,
-            min_value=0.000,
-            step=0.001 if input_unit == 'ft' else 1.0,
-            format="%.3f" if input_unit == 'ft' else "%.1f",
-            key="length2_input"
-        )
-        width2 = st.number_input(
-            f'Width 2 ({input_unit})', 
-            value=0.000,
-            min_value=0.000,
-            step=0.001 if input_unit == 'ft' else 1.0,
-            format="%.3f" if input_unit == 'ft' else "%.1f",
-            key="width2_input"
-        )
+        length2 = st.number_input(f'Wall 2 Length ({unit})', min_value=0.0)
+        width2 = st.number_input(f'Width 2 ({unit})', min_value=0.0)
 
-    # Add some spacing
-    st.write("")
-    
-    # Center the calculate button
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        calculate_button = st.button('Calculate', key='calc_button')
-    
-    if calculate_button:
-        try:
-            # Convert inputs to feet first if needed
-            conversion_to_ft = {
-                'ft': 1.0,
-                'mm': 0.00328084,
-                'cm': 0.0328084
-            }
-            
-            # Convert input values to feet
-            conv_factor = conversion_to_ft[input_unit]
-            length1_ft = Decimal(str(length1 * conv_factor))
-            length2_ft = Decimal(str(length2 * conv_factor))
-            width1_ft = Decimal(str(width1 * conv_factor))
-            width2_ft = Decimal(str(width2 * conv_factor))
-            
-            # Calculate in feet using Decimal for precision
-            horizontal_rods = max(length1_ft, length2_ft)
-            vertical_rods = max(width1_ft, width2_ft)
-            
-            # Calculate number of rods (integer division)
-            num_horizontal_rods = int(horizontal_rods / Decimal('2')) + 1
-            num_vertical_rods = int(vertical_rods / Decimal('2')) + 1
-            
-            # Results section
-            st.subheader('Results')
-            
-            result_unit = st.selectbox('Display results in:', 
-                                     ['ft', 'mm', 'cm'],
-                                     format_func=lambda x: {
-                                         'ft': 'Feet (ft)',
-                                         'mm': 'Millimeters (mm)',
-                                         'cm': 'Centimeters (cm)'
-                                     }[x])
-            
-            # Convert and display with proper precision
-            horizontal_display = convert_result(float(horizontal_rods), result_unit)
-            vertical_display = convert_result(float(vertical_rods), result_unit)
-            
-            st.write(f'Number of Horizontal Rods: {num_horizontal_rods}')
-            st.write(f'Number of Vertical Rods: {num_vertical_rods}')
-            st.write(f'Length of Horizontal Rods: {horizontal_display:.3f} {result_unit}')
-            st.write(f'Length of Vertical Rods: {vertical_display:.3f} {result_unit}')
-            
-        except ValueError:
-            st.error('Invalid input. Please enter numeric values.')
+    if st.button('Calculate'):
+        dimensions = RoomDimensions(
+            convert_to_feet(length1, unit),
+            convert_to_feet(length2, unit),
+            convert_to_feet(width1, unit),
+            convert_to_feet(width2, unit)
+        )
+        
+        results = calculate_ceiling_requirements(dimensions)
+        
+        st.subheader('Calculation Results')
+        st.write(f"Parameters needed: {results.parameters_full} full rods (12ft) + {results.parameters_extra:.2f} ft extra")
+        st.write(f"Main rods needed: {results.main_rods}")
+        st.write(f"Cross rods needed: {results.cross_rods}")
+        st.write(f"Connecting clips required: {results.connecting_clips}")
+        st.write(f"Screws required: {results.screws}")
+        st.write(f"Total parameter length: {results.total_parameter_length:.2f} ft")
+        
+        excel_data = generate_excel_download(results)
+        st.download_button(
+            label="Download Excel Report",
+            data=excel_data,
+            file_name="ceiling_calculation.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 if __name__ == '__main__':
     main()
