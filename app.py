@@ -127,7 +127,7 @@ def main():
         st.write(f"Black screws: {results.black_screws} Box(es) (1 Box per 1000 sqft)")
         
         # Detailed Board Requirements
-        st.write("### Plywood Boards (6ft × 4ft × 0.5inch)")
+        st.write("### Plywood Boards (6ft × 4ft x 0.5inch)")
         if results.board_extra_sqft > 0:
             st.write(f"Full boards needed: {int(results.board_count)}")
             st.write(f"Extra area needed: {results.board_extra_sqft:.2f} sqft ({results.board_extra_sqft/24:.2f} boards)")

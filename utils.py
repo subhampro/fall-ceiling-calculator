@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import ceil
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -32,6 +32,7 @@ class CeilingCalculation:
     l_patti_remaining: int       # New: remaining pieces of same size
     l_patti_cut_size: float     # New: size of each cut piece
     last_cross_length: float  # New field for last cross rod length
+    cross_lengths: list[float] = field(default_factory=list)  # New field for cross rod lengths
 
 def calculate_rod_length_with_overlap(length: float, standard_length: float = 12.0, overlap: float = 4/12) -> tuple[int, float]:
     """Calculate number of rods needed and extra length including overlaps"""
@@ -246,5 +247,6 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         l_patti_cuts=l_patti_cuts,
         l_patti_remaining=remaining_cuts,
         l_patti_cut_size=cut_size,
-        last_cross_length=round(last_cross_length, 2)
+        last_cross_length=round(last_cross_length, 2),
+        cross_lengths=cross_lengths  # Include cross lengths in the result
     )
