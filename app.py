@@ -83,37 +83,45 @@ def main():
         
         st.subheader('Calculation Results')
         
-        # Parameters
+        # Parameters (1 inch × 1 inch)
         st.write("### Parameters")
-        full_param = f"{results.parameters_full} full rods (12ft)"
-        extra_param = f" + {results.parameters_extra:.2f} ft extra" if results.parameters_extra > 0 else ""
-        st.write(f"Parameters needed: {full_param}{extra_param}")
+        param_text = f"{results.parameters_full} full rods (12ft)"
+        if results.parameters_extra > 0:
+            param_text += f" + {results.parameters_extra:.2f} ft extra (including 4 inch overlap)"
+        st.write(f"Parameters needed: {param_text}")
         st.write(f"Total parameter length: {results.total_parameter_length:.2f} ft")
         
-        # Main/Enter and Cross
-        st.write("### Main/Enter and Cross")
-        st.write(f"Main/Enter rods (2 inch × 1 inch): {results.main_rods}")
-        st.write(f"Cross rods (3 inch × 1 inch): {results.cross_rods}")
+        # Main/Enter Details
+        st.write("### Main/Enter Rods (2 inch × 1 inch)")
+        st.write(f"Number of main rods: {results.main_rods}")
+        st.write(f"Total main rod length: {results.main_rods_length:.2f} ft (including 4 inch overlaps)")
+        st.write("Spacing: 2ft from walls, 4ft between centers")
+        
+        # Cross Rod Details
+        st.write("### Cross Rods (3 inch × 1 inch)")
+        st.write(f"Number of cross rods: {results.cross_rods}")
+        st.write(f"Total cross rod length: {results.cross_rods_length:.2f} ft (including 4 inch overlaps)")
+        st.write("Spacing: 2ft from walls to center, 2ft between centers")
         
         # Support Materials
         st.write("### Support Materials")
-        st.write(f"L-patti count: {results.l_patti_count}")
+        st.write(f"L-patti required: {results.l_patti_count} (3ft from walls, 4ft spacing)")
         st.write(f"Fasteners: {results.fasteners}")
         st.write(f"Fastener clips: {results.fastener_clips}")
-        st.write(f"Connecting clips: {results.connecting_clips}")
+        st.write(f"Connecting clips: {results.connecting_clips} (at Main-Cross intersections)")
         
         # Screws
         st.write("### Screws")
-        st.write(f"Regular screws (1 ft spacing): {results.screws}")
-        st.write(f"Black screws (L-patti): {results.black_screws}")
+        st.write(f"Regular screws: {results.screws} (1ft spacing on parameters)")
+        st.write(f"Black screws: {results.black_screws} (2 per L-patti)")
         
         # Board Requirements
-        st.write("### Plywood Board Requirements")
+        st.write("### Plywood Board Requirements (6ft × 4ft × 0.5inch)")
+        board_text = f"{int(results.board_count)} full boards"
         if results.board_extra_sqft > 0:
-            extra_boards = results.board_extra_sqft / 24  # 24 sqft per board
-            st.write(f"Plywood Boards (6ft × 4ft × 0.5inch): {int(results.board_count)} full boards + {results.board_extra_sqft:.2f} sqft ({extra_boards:.2f} boards) extra")
-        else:
-            st.write(f"Plywood Boards (6ft × 4ft × 0.5inch): {int(results.board_count)} full boards")
+            extra_boards = results.board_extra_sqft / 24
+            board_text += f" + {results.board_extra_sqft:.2f} sqft ({extra_boards:.2f} boards) extra"
+        st.write(board_text)
 
 if __name__ == '__main__':
     main()
