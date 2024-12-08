@@ -52,7 +52,6 @@ def main():
         ['ft', 'mm', 'cm', 'inches', 'm', 'yd']
     )
     
-    # Add Linter Spacing input at the top
     linter_spacing = st.number_input(
         f'Linter Spacing (Chad to Main Rod Height) ({unit})',
         min_value=0.0,
@@ -83,14 +82,12 @@ def main():
         
         st.subheader('Calculation Results')
         
-        # Parameters
         st.write("### Parameters (1 inch × 1 inch Steel Rods)")
         st.write(f"Total Perimeter Length: {results.total_parameter_length:.2f} ft")
         st.write(f"Full Parameters (12ft each): {results.parameters_full}")
         if results.parameters_extra > 0:
             st.write(f"Extra Parameter Length: {results.parameters_extra:.2f} ft (with 4 inch overlap)")
         
-        # Main/Enter with exact measurements
         st.write("### Main/Enter Rods (1 inch × 2 inch)")
         st.write(f"Number of Main Rods: {results.main_rods}")
         st.write(f"Main Rod Details:")
@@ -100,7 +97,6 @@ def main():
             st.write(f"- Main {i+1}: {length:.2f} ft")
         st.write(f"- Last Main Length: {results.last_main_length:.2f} ft")
         
-        # Cross rods with center measurements
         st.write("### Cross Rods (3 inch × 1 inch)")
         st.write(f"Number of Cross Rods: {results.cross_rods}")
         st.write("Cross Rod Details:")
@@ -110,22 +106,19 @@ def main():
             st.write(f"- Cross {i+1}: {length:.2f} ft")
         st.write(f"- Last Cross Length: {results.last_cross_length:.2f} ft")
         
-        # Support Materials with detailed counts
         st.write("### Support Materials")
         st.write(f"Full L-Patti Count (8ft): {results.full_l_patti_count}")
         st.write(f"Cutting L-Patti: {results.l_patti_cuts} (Cut Size: {results.l_patti_cut_size:.2f}ft/piece)")
         st.write(f"Remaining Cutted L-Patti: {results.l_patti_remaining} ({results.l_patti_cut_size:.2f}ft/piece)")
         st.write(f"Fasteners needed: {results.fasteners} (1 per L-patti)")
         st.write(f"Fastener clips needed: {results.fastener_clips} (1 per fastener)")
-        st.write(f"Nut Bolt Pair needed: {results.fastener_clips} (1 per Fastener Clip)")  # New line
+        st.write(f"Nut Bolt Pair needed: {results.fastener_clips} (1 per Fastener Clip)")
         st.write(f"Connecting clips needed: {results.connecting_clips} (at Main-Cross intersections)")
         
-        # Screws with specific counts
         st.write("### Screws")
         st.write(f"Regular screws: {results.screws} (1ft spacing on parameters)")
         st.write(f"Black screws: {results.black_screws} Box(es) (1 Box per 1000 sqft)")
         
-        # Detailed Board Requirements
         st.write("### Plywood Boards (6ft × 4ft x 0.5inch)")
         if results.board_extra_sqft > 0:
             st.write(f"Full boards needed: {int(results.board_count)}")
