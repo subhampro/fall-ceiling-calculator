@@ -119,9 +119,9 @@ def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, floa
     num_rods = len(positions)
     
     # All crosses should be cut to shorter width
-    last_cross_length = shorter_width
+    last_cross_length = shorter_wall  # Fix: use shorter_wall instead
     
-    return num_rods, last_cross_length, shorter_width
+    return num_rods, last_cross_length, shorter_wall
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
@@ -224,5 +224,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         l_patti_cuts=l_patti_cuts,
         l_patti_remaining=remaining_cuts,
         l_patti_cut_size=cut_size,
+        last_cross_length=round(last_cross_length, 2)
+    )
         last_cross_length=round(last_cross_length, 2)
     )
