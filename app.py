@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from math import ceil  # Add this import
 from utils import RoomDimensions, calculate_ceiling_requirements
 from decimal import Decimal
 import base64
@@ -89,7 +90,16 @@ def main():
             st.write(f"Extra Parameter Length: {results.parameters_extra:.2f} ft (with 4 inch overlap)")
         
         st.write("### Main/Enter Rods (1 inch × 2 inch)")
-        st.write(f"Number of Main Rods: {results.main_rods}")
+        # Show number of main rods needed for positions only (without extras)
+        st.write(f"Number of Main Rods: {len(results.main_lengths)}")
+        
+        # Calculate and show extra rods needed
+        if results.extra_main_needed:
+            extra_length = float(results.extra_main_needed.split()[0])  # Extract number from "42.08 FT"
+            extra_rods = ceil(extra_length / 12)  # Calculate extra rods needed
+            st.write(f"Need Main Rod for Extra makeup: {extra_rods}")
+            st.write(f"Total Main Rod Needed: {len(results.main_lengths) + extra_rods}")
+        
         st.write(f"Main Rod Details:")
         st.write("- First rod: 2ft from wall")
         st.write("- Spacing between rods: 4ft")
