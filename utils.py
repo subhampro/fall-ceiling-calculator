@@ -47,15 +47,18 @@ def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
     
     total_perimeter = dimensions.length1 + dimensions.length2 + dimensions.width1 + dimensions.width2
     
-    # Calculate full rods needed considering overlap at each joint
-    full_rods = ceil((total_perimeter - OVERLAP) / (STANDARD_LENGTH - OVERLAP))
-    total_length = total_perimeter + ((full_rods - 1) * OVERLAP)
+    # Calculate full rods needed
+    full_rods = ceil(total_perimeter / STANDARD_LENGTH)
     
+    # Calculate extra length - only add overlaps if segment > 12ft
     extra_length = 0
-    if total_length > (full_rods * STANDARD_LENGTH):
-        extra_length = round(total_length - (full_rods * STANDARD_LENGTH) + OVERLAP, 2)
+    if total_perimeter > (full_rods * STANDARD_LENGTH):
+        extra_length = total_perimeter - (full_rods * STANDARD_LENGTH)
+        # Add overlap only if we need to join pieces
+        if extra_length > STANDARD_LENGTH:
+            extra_length += OVERLAP
     
-    return full_rods, extra_length
+    return full_rods, round(extra_length, 2)
 
 def calculate_main_rods(length: float) -> tuple[int, float]:
     """Calculate main/enter rods with 2ft wall distance and 4ft spacing"""
@@ -63,6 +66,11 @@ def calculate_main_rods(length: float) -> tuple[int, float]:
     SPACING = 4  # feet between centers
     LAST_THRESHOLD = 3.5  # maximum allowed from last wall
     OVERLAP = 4/12  # 4 inch overlap
+    
+    # For your case (12ft wall):
+    # First main at 2ft
+    # Second main at 6ft (2ft + 4ft spacing)
+    # Last main at 11ft (due to >3.5ft condition)
     
     # Calculate main rods needed
     working_length = length - (2 * FIRST_DISTANCE)
@@ -74,8 +82,13 @@ def calculate_main_rods(length: float) -> tuple[int, float]:
     if last_dist > LAST_THRESHOLD:
         num_rods += 1
     
-    # Calculate total length needed with overlaps
-    total_length = (num_rods * 12) - ((num_rods - 1) * (12 - OVERLAP))
+    # Calculate total length
+    # If wall length <= 12ft, each main rod is exactly 12ft
+    # Only add overlaps when wall length > 12ft
+    if length <= 12:
+        total_length = num_rods * 12
+    else:
+        total_length = (num_rods * 12) - ((num_rods - 1) * (12 - OVERLAP))
     
     return num_rods, total_length
 
@@ -85,14 +98,18 @@ def calculate_cross_rods(width: float) -> tuple[int, float]:
     SPACING = 2  # feet between centers
     CENTER_OFFSET = 1.5/12  # 1.5 inch (half of 3-inch width)
     OVERLAP = 4/12  # 4 inch overlap
+    STANDARD_LENGTH = 12  # feet
     
     # Calculate based on centers
     adjusted_width = width - (2 * (FIRST_DISTANCE - CENTER_OFFSET))
     num_spaces = ceil(adjusted_width / SPACING)
     num_rods = num_spaces + 1
     
-    # Total length with overlaps
-    total_length = width + ((num_rods - 1) * OVERLAP)
+    # Calculate total length - only add overlaps if width > 12ft
+    if width <= STANDARD_LENGTH:
+        total_length = width * num_rods
+    else:
+        total_length = width + ((num_rods - 1) * OVERLAP)
     
     return num_rods, total_length
 
