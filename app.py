@@ -105,9 +105,9 @@ def main():
         st.write("### Cross Rods (3 inch × 1 inch)")
         st.write(f"Number of Cross Rods: {results.cross_rods}")
         st.write("Cross Rod Details:")
-        st.write("- Center spacing: 2ft between rods")
-        st.write("- First rod center: 2ft from wall")
-        st.write(f"- Total length needed: {results.cross_rods_length:.2f} ft")
+        st.write("- Spacing: 2ft between rods")
+        st.write("- First rod: 2ft from wall")
+        st.write(f"- Last Cross Length: {results.last_cross_length:.2f} ft")
         
         # Support Materials with detailed counts
         st.write("### Support Materials")
