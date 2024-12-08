@@ -72,47 +72,35 @@ def calculate_main_rods(length: float) -> tuple[int, list[float], float]:
     """Calculate main/enter rods with 2ft wall distance and 4ft spacing"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 4  # feet between centers
-    LAST_THRESHOLD = 3.5  # maximum allowed from last wall
-    OVERLAP = 4/12  # 4 inch overlap
     STANDARD_LENGTH = 12  # standard rod length in feet
+    WALL_THRESHOLD = 3.5  # Don't add another rod if distance to wall is less than this
     
     # Calculate positions of main rods
     positions = []
     current_pos = FIRST_DISTANCE
-    
-    # Keep adding positions while within valid range
-    while current_pos <= length:
+    while current_pos < length:
         positions.append(current_pos)
-        current_pos += SPACING
+        next_pos = current_pos + SPACING
+        # Only add next position if it leaves reasonable distance to wall
+        if (length - next_pos) >= WALL_THRESHOLD:
+            current_pos = next_pos
+        else:
+            break
     
-    # Remove last position if too close to wall
-    if positions and (length - positions[-1]) <= LAST_THRESHOLD:
-        positions.pop()
-    
-    # Add an extra main rod if the distance to the end wall is greater than LAST_THRESHOLD
-    if positions and (length - positions[-1]) > LAST_THRESHOLD:
-        positions.append(length - 1)
-    
-    # Calculate the length of each main rod
+    # Always use full 12ft rods unless the room dimension absolutely requires cutting
     main_lengths = []
     for pos in positions:
-        if pos + STANDARD_LENGTH <= length:
+        if length >= STANDARD_LENGTH:
             main_lengths.append(STANDARD_LENGTH)
         else:
-            main_lengths.append(length - pos)
+            # Only cut if room is shorter than standard length
+            remaining_length = length - pos
+            main_lengths.append(min(remaining_length, STANDARD_LENGTH))
     
-    # Calculate last main length
+    main_count = len(main_lengths)
     last_main_length = main_lengths[-1] if main_lengths else 0
     
-    # Calculate the number of main rods needed, considering overlaps
-    total_main_length = sum(main_lengths)
-    num_main_rods = ceil(total_main_length / STANDARD_LENGTH)
-    
-    # Ensure that the total length is correctly calculated
-    if total_main_length > num_main_rods * STANDARD_LENGTH:
-        num_main_rods += 1
-    
-    return num_main_rods, main_lengths, last_main_length
+    return main_count, main_lengths, last_main_length
 
 def calculate_cross_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, list[float], float]:
     """Calculate cross rods with 2ft spacing considering different wall lengths and varying widths"""
@@ -205,7 +193,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     # Use maximum dimensions for calculations
     max_length = max(dimensions.length1, dimensions.length2)
-    max_width = max(dimensions.width1, dimensions.width2)
+    max_width = max(dimensions.length1, dimensions.length2)
     
     main_rods_count, main_lengths, last_main_length = calculate_main_rods(max_length)
     cross_rods_count, cross_lengths, last_cross_length = calculate_cross_rods(
