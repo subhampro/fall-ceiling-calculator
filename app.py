@@ -96,10 +96,9 @@ def main():
         st.write(f"Main Rod Details:")
         st.write("- First rod: 2ft from wall")
         st.write("- Spacing between rods: 4ft")
-        st.write(f"- Total length needed: {results.main_rods_length:.2f} ft")
-        if results.main_rods_length > (results.main_rods * 12):
-            extra = results.main_rods_length - (results.main_rods * 12)
-            st.write(f"- Extra pieces needed: {extra:.2f} ft (including 4 inch overlaps)")
+        for i, length in enumerate(results.main_lengths):
+            st.write(f"- Main {i+1}: {length:.2f} ft")
+        st.write(f"- Last Main Length: {results.last_main_length:.2f} ft")
         
         # Cross rods with center measurements
         st.write("### Cross Rods (3 inch × 1 inch)")

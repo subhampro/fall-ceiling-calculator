@@ -33,6 +33,8 @@ class CeilingCalculation:
     l_patti_cut_size: float     # New: size of each cut piece
     last_cross_length: float  # New field for last cross rod length
     cross_lengths: list[float] = field(default_factory=list)  # New field for cross rod lengths
+    main_lengths: list[float] = field(default_factory=list)  # New field for main rod lengths
+    last_main_length: float = 0.0  # New field for last main rod length
 
 def calculate_rod_length_with_overlap(length: float, standard_length: float = 12.0, overlap: float = 4/12) -> tuple[int, float]:
     """Calculate number of rods needed and extra length including overlaps"""
@@ -66,37 +68,51 @@ def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
     
     return full_rods, round(extra_length, 2)
 
-def calculate_main_rods(length: float) -> tuple[int, float]:
+def calculate_main_rods(length: float) -> tuple[int, list[float], float]:
     """Calculate main/enter rods with 2ft wall distance and 4ft spacing"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 4  # feet between centers
     LAST_THRESHOLD = 3.5  # maximum allowed from last wall
     OVERLAP = 4/12  # 4 inch overlap
+    STANDARD_LENGTH = 12  # standard rod length in feet
     
-    # For your case (12ft wall):
-    # First main at 2ft
-    # Second main at 6ft (2ft + 4ft spacing)
-    # Last main at 11ft (due to >3.5ft condition)
+    # Calculate positions of main rods
+    positions = []
+    current_pos = FIRST_DISTANCE
     
-    # Calculate main rods needed
-    working_length = length - (2 * FIRST_DISTANCE)
-    num_spaces = ceil(working_length / SPACING)
-    num_rods = num_spaces + 1
+    # Keep adding positions while within valid range
+    while current_pos <= length:
+        positions.append(current_pos)
+        current_pos += SPACING
     
-    # Check if additional rod needed near last wall
-    last_dist = length - (FIRST_DISTANCE + (num_spaces * SPACING))
-    if last_dist > LAST_THRESHOLD:
-        num_rods += 1
+    # Remove last position if too close to wall
+    if positions and (length - positions[-1]) <= LAST_THRESHOLD:
+        positions.pop()
     
-    # Calculate total length
-    # If wall length <= 12ft, each main rod is exactly 12ft
-    # Only add overlaps when wall length > 12ft
-    if length <= 12:
-        total_length = num_rods * 12
-    else:
-        total_length = (num_rods * 12) - ((num_rods - 1) * (12 - OVERLAP))
+    # Add an extra main rod if the distance to the end wall is greater than LAST_THRESHOLD
+    if positions and (length - positions[-1]) > LAST_THRESHOLD:
+        positions.append(length - 1)
     
-    return num_rods, total_length
+    # Calculate the length of each main rod
+    main_lengths = []
+    for pos in positions:
+        if pos + STANDARD_LENGTH <= length:
+            main_lengths.append(STANDARD_LENGTH)
+        else:
+            main_lengths.append(length - pos)
+    
+    # Calculate last main length
+    last_main_length = main_lengths[-1] if main_lengths else 0
+    
+    # Calculate the number of main rods needed, considering overlaps
+    total_main_length = sum(main_lengths)
+    num_main_rods = ceil(total_main_length / STANDARD_LENGTH)
+    
+    # Ensure that the total length is correctly calculated
+    if total_main_length > num_main_rods * STANDARD_LENGTH:
+        num_main_rods += 1
+    
+    return num_main_rods, main_lengths, last_main_length
 
 def calculate_cross_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, list[float], float]:
     """Calculate cross rods with 2ft spacing considering different wall lengths and varying widths"""
@@ -191,7 +207,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     max_length = max(dimensions.length1, dimensions.length2)
     max_width = max(dimensions.width1, dimensions.width2)
     
-    main_rods_count, main_rods_length = calculate_main_rods(max_length)
+    main_rods_count, main_lengths, last_main_length = calculate_main_rods(max_length)
     cross_rods_count, cross_lengths, last_cross_length = calculate_cross_rods(
         dimensions.length1,  # Use lengths for positioning
         dimensions.length2,
@@ -236,7 +252,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         connecting_clips=connecting_clips,
         screws=screws,
         total_parameter_length=round(total_parameter_length, 2),
-        main_rods_length=round(main_rods_length, 2),
+        main_rods_length=round(sum(main_lengths), 2),
         cross_rods_length=round(cross_rods_length, 2),
         l_patti_count=l_patti_cuts,  # Total cuts needed
         black_screws=black_screw_boxes,  # Now represents boxes instead of count
@@ -249,5 +265,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         l_patti_remaining=remaining_cuts,
         l_patti_cut_size=cut_size,
         last_cross_length=round(last_cross_length, 2),
-        cross_lengths=cross_lengths  # Include cross lengths in the result
+        cross_lengths=cross_lengths,  # Include cross lengths in the result
+        main_lengths=main_lengths,  # Include main lengths in the result
+        last_main_length=round(last_main_length, 2)
     )
