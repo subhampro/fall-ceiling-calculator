@@ -41,58 +41,57 @@ def calculate_rod_length_with_overlap(length: float, standard_length: float = 12
     return full_rods, total_length
 
 def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
-    """Calculate parameters needed for perimeter (1 inch × 1 inch)"""
+    """Calculate parameters (1 inch × 1 inch steel rods)"""
     STANDARD_LENGTH = 12  # feet
-    OVERLAP = 4/12  # 4 inches in feet
+    OVERLAP = 4/12  # 4 inches overlap
     
     total_perimeter = dimensions.length1 + dimensions.length2 + dimensions.width1 + dimensions.width2
-    # Adjust calculation to account for overlaps properly
-    full_rods = ceil((total_perimeter - OVERLAP) / (STANDARD_LENGTH - OVERLAP))
+    # Calculate with proper overlaps
+    effective_length = total_perimeter - OVERLAP  # Remove one overlap length
+    full_rods = ceil(effective_length / (STANDARD_LENGTH - OVERLAP))
     total_length = total_perimeter + ((full_rods - 1) * OVERLAP)
     
     extra_length = total_length % STANDARD_LENGTH
     if extra_length > 0:
-        extra_length = round(extra_length + OVERLAP, 2)  # Include overlap for joining
+        extra_length = round(extra_length + OVERLAP, 2)  # Add overlap for joining
     
     return full_rods, extra_length
 
 def calculate_main_rods(length: float) -> tuple[int, float]:
-    """Calculate main rods (1 inch × 2 inch height)"""
+    """Calculate main/enter rods (1 inch × 2 inch height)"""
     FIRST_DISTANCE = 2  # feet from wall
-    ROD_SPACING = 4  # feet between rods
-    LAST_THRESHOLD = 3.5  # maximum allowed distance from last wall
+    SPACING = 4  # feet between rods
+    LAST_THRESHOLD = 3.5  # maximum allowed from last wall
     OVERLAP = 4/12  # 4 inch overlap
     
-    # Calculate spaces needed
     usable_length = length - (2 * FIRST_DISTANCE)
-    num_spaces = ceil(usable_length / ROD_SPACING)
+    num_spaces = ceil(usable_length / SPACING)
     num_rods = num_spaces + 1
     
-    # Check if additional rod needed near last wall
-    last_distance = length - (FIRST_DISTANCE + (num_spaces * ROD_SPACING))
+    # Check last wall distance and add rod if needed
+    last_distance = length - (FIRST_DISTANCE + (num_spaces * SPACING))
     if last_distance > LAST_THRESHOLD:
         num_rods += 1
-        last_distance = 1  # New rod will be 1ft from wall
     
-    # Calculate total length including overlaps
-    total_length = (num_rods * 12) + ((num_rods - 1) * OVERLAP)
+    # Total length needed with overlaps
+    total_length = length + ((num_rods - 1) * OVERLAP)
     
     return num_rods, total_length
 
 def calculate_cross_rods(width: float) -> tuple[int, float]:
-    """Calculate cross rods (3 inch × 1 inch) with center-based spacing"""
+    """Calculate cross rods (3 inch × 1 inch)"""
     FIRST_DISTANCE = 2  # feet from wall to center
     SPACING = 2  # feet between centers
-    CENTER_OFFSET = 1.5/12  # 1.5 inch (half of 3 inch width)
+    CENTER_OFFSET = 1.5/12  # 1.5 inch (half of 3-inch width)
     OVERLAP = 4/12  # 4 inch overlap
     
-    # Calculate from center to center
-    effective_width = width - (2 * (FIRST_DISTANCE - CENTER_OFFSET))
-    num_spaces = ceil(effective_width / SPACING)
+    # Calculate based on centers
+    adjusted_width = width - (2 * (FIRST_DISTANCE - CENTER_OFFSET))
+    num_spaces = ceil(adjusted_width / SPACING)
     num_rods = num_spaces + 1
     
-    # Calculate total length with overlaps
-    total_length = (num_rods * 12) + ((num_rods - 1) * OVERLAP)
+    # Total length with overlaps
+    total_length = width + ((num_rods - 1) * OVERLAP)
     
     return num_rods, total_length
 
