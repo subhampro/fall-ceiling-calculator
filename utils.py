@@ -82,14 +82,18 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
     
     main_lengths = []
     total_extra_main_needed = 0.0
+    extra_main_count = 0
     for pos in positions:
         length_at_pos = length1 + (length2 - length1) * (pos / width)
         main_lengths.append(length_at_pos)
         if length_at_pos > STANDARD_LENGTH:
             extra_length = length_at_pos - STANDARD_LENGTH + 5 * INCH_TO_FEET
             total_extra_main_needed += extra_length
+            if total_extra_main_needed > STANDARD_LENGTH:
+                extra_main_count += 1
+                total_extra_main_needed -= STANDARD_LENGTH
     
-    main_count = len(positions)
+    main_count = len(positions) + extra_main_count
     
     return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, f"{total_extra_main_needed:.2f} ft"
 
