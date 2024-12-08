@@ -97,7 +97,7 @@ def main():
         if results.extra_main_needed:
             extra_length = float(results.extra_main_needed.split()[0])  # Extract number from "42.08 FT"
             extra_rods = ceil(extra_length / 12)  # Calculate extra rods needed
-            st.write(f"Need Main Rod for Extra makeup: {extra_rods}")
+            st.write(f"Need Main Rod for Extra: {extra_rods}")
             st.write(f"Total Main Rod Needed: {len(results.main_lengths) + extra_rods}")
         
         st.write(f"Main Rod Details:")
