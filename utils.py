@@ -104,10 +104,9 @@ def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, floa
     LAST_THRESHOLD = 2  # minimum required distance from last wall
     
     longer_wall = max(width1, width2)
-    shorter_wall = min(width1, width2)
+    shorter_width = min(dimensions.width1, dimensions.width2)  # This is for cross length
     
-    # Calculate all positions up to the longer wall length
-    num_rods = 0
+    # Calculate positions of crosses
     positions = []
     current_pos = FIRST_DISTANCE
     
@@ -115,16 +114,14 @@ def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, floa
     while current_pos <= longer_wall:
         if longer_wall - current_pos >= LAST_THRESHOLD:
             positions.append(current_pos)
-            num_rods += 1
         current_pos += SPACING
     
-    # For debugging - print all positions
-    print(f"Cross positions: {positions}")  # This will help verify the positions
+    num_rods = len(positions)
     
-    # Calculate last cross length
-    last_cross_length = shorter_wall
+    # All crosses should be cut to shorter width
+    last_cross_length = shorter_width
     
-    return num_rods, last_cross_length, shorter_wall
+    return num_rods, last_cross_length, shorter_width
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
