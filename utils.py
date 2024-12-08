@@ -68,7 +68,7 @@ def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
     
     return full_rods, round(extra_length, 2)
 
-def calculate_main_rods(width: float) -> tuple[int, list[float], float]:
+def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[int, list[float], float]:
     """Calculate main/enter rods with 2ft wall distance and 4ft spacing"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 4  # feet between centers
@@ -89,11 +89,14 @@ def calculate_main_rods(width: float) -> tuple[int, list[float], float]:
     if remaining_space >= WALL_THRESHOLD:
         positions.append(min(width, positions[-1] + SPACING))
     
-    # Always use full 12ft rods for main/enter
-    main_lengths = [STANDARD_LENGTH] * len(positions)
+    # Calculate the length of each main rod based on varying lengths
+    main_lengths = []
+    for pos in positions:
+        length_at_pos = length1 + (length2 - length1) * (pos / width)
+        main_lengths.append(length_at_pos)
     
     main_count = len(positions)
-    last_main_length = STANDARD_LENGTH  # Main rods are always 12ft
+    last_main_length = main_lengths[-1] if main_lengths else 0
     
     return main_count, main_lengths, last_main_length
 
@@ -189,7 +192,11 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     # Use maximum width instead of length for main rods
     max_width = max(dimensions.width1, dimensions.width2)
     
-    main_rods_count, main_lengths, last_main_length = calculate_main_rods(max_width)
+    main_rods_count, main_lengths, last_main_length = calculate_main_rods(
+        dimensions.length1,  # Use lengths for main rod lengths
+        dimensions.length2,
+        max_width
+    )
     cross_rods_count, cross_lengths, last_cross_length = calculate_cross_rods(
         dimensions.length1,  # Use lengths for positioning
         dimensions.length2,
