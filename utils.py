@@ -67,6 +67,8 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
     SPACING = 4
     STANDARD_LENGTH = 12
     WALL_THRESHOLD = 3.5
+    OVERLAP_INCHES = 5  # 5 inch overlap
+    OVERLAP = OVERLAP_INCHES / 12  # convert to feet
     
     positions = []
     current_pos = FIRST_DISTANCE
@@ -81,6 +83,7 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
     
     main_lengths = []
     total_extra_needed = 0.0
+    overlaps_needed = 0
     
     for pos in positions:
         length_at_pos = length1 + (length2 - length1) * (pos / width)
@@ -88,14 +91,19 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
         if length_at_pos > STANDARD_LENGTH:
             extra_length = length_at_pos - STANDARD_LENGTH
             total_extra_needed += extra_length
+            # Count how many overlaps needed (one for each piece after the first)
+            overlaps_needed += ceil(extra_length / STANDARD_LENGTH)
+    
+    # Add overlap length to total_extra_needed
+    total_extra_needed += (overlaps_needed * OVERLAP)
     
     # If total extra needed is less than standard length (12ft),
     # we only need one additional rod for all extra pieces
     extra_rods_needed = 1 if total_extra_needed > 0 else 0
     main_count = len(positions) + extra_rods_needed
     
-    # Show total extra needed if it's greater than 0
-    extra_needed_str = f"{total_extra_needed:.2f}" if total_extra_needed > 0 else ""
+    # Show total extra needed with FT unit if it's greater than 0
+    extra_needed_str = f"{total_extra_needed:.2f} FT" if total_extra_needed > 0 else ""
     
     return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, extra_needed_str
 
