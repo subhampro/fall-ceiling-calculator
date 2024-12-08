@@ -105,31 +105,26 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     
     longer_wall = max(length1, length2)
     shorter_wall = min(length1, length2)
-    shorter_width = min(width1, width2)  # Use width for cross lengths
+    shorter_width = min(width1, width2)
     
     # Calculate positions of crosses
     positions = []
     current_pos = FIRST_DISTANCE
     
-    # Keep adding positions until longer wall length
-    while current_pos <= longer_wall - LAST_THRESHOLD:
+    # Keep adding positions while within valid range
+    while current_pos <= longer_wall:
         positions.append(current_pos)
         current_pos += SPACING
     
-    num_rods = len(positions)
+    # Remove last position if too close to wall
+    if positions and (longer_wall - positions[-1]) < LAST_THRESHOLD:
+        positions.pop()
     
-    # Calculate last cross length
-    if num_rods > 0:
-        last_pos = positions[-1]
-        # If last cross would extend beyond shorter wall
-        if last_pos > shorter_wall:
-            # Calculate how much shorter it needs to be
-            overhang = last_pos - shorter_wall
-            last_cross_length = shorter_width - overhang
-        else:
-            last_cross_length = shorter_width
-    else:
-        last_cross_length = shorter_width
+    # Debug print
+    print(f"Cross positions: {positions}")  # This will help verify positions
+    
+    num_rods = len(positions)
+    last_cross_length = shorter_width  # Always use shorter width for cross length
     
     return num_rods, last_cross_length, shorter_width
 
@@ -184,9 +179,9 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     main_rods_count, main_rods_length = calculate_main_rods(max_length)
     cross_rods_count, last_cross_length, min_width = calculate_cross_rods(
-        dimensions.length1, 
+        dimensions.length1,  # Use lengths for positioning
         dimensions.length2,
-        dimensions.width1,
+        dimensions.width1,   # Use widths for cross lengths
         dimensions.width2
     )
     
