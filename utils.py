@@ -106,29 +106,23 @@ def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, floa
     longer_wall = max(width1, width2)
     shorter_wall = min(width1, width2)
     
-    # Calculate positions of crosses
+    # Calculate all positions up to the longer wall length
+    num_rods = 0
     positions = []
     current_pos = FIRST_DISTANCE
     
-    # Keep adding positions until we reach the longer wall length
+    # Keep adding positions while we have enough space for a cross
     while current_pos <= longer_wall:
-        # Only add position if it's not too close to the end of longer wall
         if longer_wall - current_pos >= LAST_THRESHOLD:
             positions.append(current_pos)
+            num_rods += 1
         current_pos += SPACING
     
-    num_rods = len(positions)
+    # For debugging - print all positions
+    print(f"Cross positions: {positions}")  # This will help verify the positions
     
-    # Calculate last cross length based on shorter wall
-    if num_rods > 0 and positions[-1] <= shorter_wall:
-        last_cross_length = shorter_wall
-    else:
-        last_cross_length = shorter_wall  # Cut to shorter wall length
-    
-    # For your specific example with walls 15ft and 12ft:
-    # Positions will be: 2,4,6,8,10,12,14,16,18
-    # num_rods will be 9 (not 6 as before)
-    # last_cross_length will be 12ft (shorter wall)
+    # Calculate last cross length
+    last_cross_length = shorter_wall
     
     return num_rods, last_cross_length, shorter_wall
 
@@ -179,10 +173,10 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     # Use maximum dimensions for calculations
     max_length = max(dimensions.length1, dimensions.length2)
-    max_width = max(dimensions.width1, dimensions.width2)
+    max_width = max(dimensions.length1, dimensions.length2)
     
     main_rods_count, main_rods_length = calculate_main_rods(max_length)
-    cross_rods_count, last_cross_length, min_width = calculate_cross_rods(dimensions.width1, dimensions.width2)
+    cross_rods_count, last_cross_length, min_width = calculate_cross_rods(dimensions.length1, dimensions.length2)
     
     # Calculate connecting clips (intersection points)
     connecting_clips = main_rods_count * cross_rods_count
