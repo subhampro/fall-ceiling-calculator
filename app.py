@@ -121,7 +121,7 @@ def main():
         # Screws with specific counts
         st.write("### Screws")
         st.write(f"Regular screws: {results.screws} (1ft spacing on parameters)")
-        st.write(f"Black screws: {results.black_screws} (2 per L-patti)")
+        st.write(f"Black screws: {results.black_screws} Box(es) (1 Box per 1000 sqft)")
         
         # Detailed Board Requirements
         st.write("### Plywood Boards (6ft × 4ft × 0.5inch)")

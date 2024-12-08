@@ -161,6 +161,12 @@ def calculate_board_requirements(dimensions: RoomDimensions) -> tuple[float, flo
     
     return full_boards, extra_sqft
 
+def calculate_room_area(dimensions: RoomDimensions) -> float:
+    """Calculate room area in square feet"""
+    avg_length = (dimensions.length1 + dimensions.length2) / 2
+    avg_width = (dimensions.width1 + dimensions.width2) / 2
+    return avg_length * avg_width
+
 def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalculation:
     # Calculate parameters
     params_full, params_extra = calculate_parameters(dimensions)
@@ -194,6 +200,10 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     # Calculate board requirements
     board_count, board_extra_sqft = calculate_board_requirements(dimensions)
     
+    # Calculate room area and black screw boxes
+    room_area = calculate_room_area(dimensions)
+    black_screw_boxes = ceil(room_area / 1000)  # 1 box per 1000 sqft
+    
     return CeilingCalculation(
         parameters_full=params_full,
         parameters_extra=round(params_extra, 2),
@@ -205,7 +215,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         main_rods_length=round(main_rods_length, 2),
         cross_rods_length=round(cross_rods_length, 2),
         l_patti_count=l_patti_cuts,  # Total cuts needed
-        black_screws=black_screws,
+        black_screws=black_screw_boxes,  # Now represents boxes instead of count
         fasteners=fasteners,
         fastener_clips=fastener_clips,
         board_count=board_count,
