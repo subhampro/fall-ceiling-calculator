@@ -68,37 +68,33 @@ def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
     
     return full_rods, round(extra_length, 2)
 
-def calculate_main_rods(length: float) -> tuple[int, list[float], float]:
+def calculate_main_rods(width: float) -> tuple[int, list[float], float]:
     """Calculate main/enter rods with 2ft wall distance and 4ft spacing"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 4  # feet between centers
     STANDARD_LENGTH = 12  # standard rod length in feet
-    WALL_THRESHOLD = 3.5  # Don't add another rod if distance to wall is less than this
+    WALL_THRESHOLD = 3.5  # Minimum distance to consider adding final rod
     
-    # Calculate positions of main rods
+    # Calculate all possible rod positions
     positions = []
     current_pos = FIRST_DISTANCE
-    while current_pos < length:
+    
+    # Keep adding positions until we exceed the width
+    while current_pos <= width:
         positions.append(current_pos)
-        next_pos = current_pos + SPACING
-        # Only add next position if it leaves reasonable distance to wall
-        if (length - next_pos) >= WALL_THRESHOLD:
-            current_pos = next_pos
-        else:
-            break
+        current_pos += SPACING
     
-    # Always use full 12ft rods unless the room dimension absolutely requires cutting
-    main_lengths = []
-    for pos in positions:
-        if length >= STANDARD_LENGTH:
-            main_lengths.append(STANDARD_LENGTH)
-        else:
-            # Only cut if room is shorter than standard length
-            remaining_length = length - pos
-            main_lengths.append(min(remaining_length, STANDARD_LENGTH))
+    # If distance from last rod to wall is > WALL_THRESHOLD, add one more rod
+    if positions and (width - positions[-1]) >= WALL_THRESHOLD:
+        positions.append(current_pos)
     
-    main_count = len(main_lengths)
-    last_main_length = main_lengths[-1] if main_lengths else 0
+    # For your case with width=14ft, positions will be [2, 6, 10, 14]
+    
+    # Always use full 12ft rods for main/enter
+    main_lengths = [STANDARD_LENGTH] * len(positions)
+    
+    main_count = len(positions)
+    last_main_length = STANDARD_LENGTH  # Main rods are always 12ft
     
     return main_count, main_lengths, last_main_length
 
