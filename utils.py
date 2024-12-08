@@ -27,6 +27,10 @@ class CeilingCalculation:
     fastener_clips: int # New field
     board_count: float  # New field
     board_extra_sqft: float  # New field
+    full_l_patti_count: int      # New: number of full 8ft L-Patti needed
+    l_patti_cuts: int            # New: number of pieces after cutting
+    l_patti_remaining: int       # New: remaining pieces of same size
+    l_patti_cut_size: float     # New: size of each cut piece
 
 def calculate_rod_length_with_overlap(length: float, standard_length: float = 12.0, overlap: float = 4/12) -> tuple[int, float]:
     """Calculate number of rods needed and extra length including overlaps"""
@@ -122,22 +126,27 @@ def calculate_cross_rods(width: float) -> tuple[int, float]:
     
     return num_rods, total_length
 
-def calculate_l_patti(length: float) -> int:
-    """Calculate L-patti count with 3ft from first wall and 4ft spacing"""
-    FIRST_PATTI_DISTANCE = 3  # feet from wall
-    PATTI_SPACING = 4  # feet between L-patti
-    LAST_WALL_THRESHOLD = 3.5  # maximum allowed distance from last wall
+def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
+    """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
+    L_PATTI_LENGTH = 8  # Standard L-Patti length in feet
+    SPACING = 4        # Spacing between L-Patti pieces
     
-    usable_length = length - (2 * FIRST_PATTI_DISTANCE)
-    num_spaces = ceil(usable_length / PATTI_SPACING)
-    num_patti = num_spaces + 1
+    # Calculate total L-Patti pieces needed for all main rods
+    main_rods = ceil((length - 4) / 4) + 1  # Calculate main rods (2ft from each wall, 4ft spacing)
+    pieces_per_main = ceil(length / SPACING)  # L-Patti pieces needed per main rod
+    total_pieces_needed = main_rods * 3      # 3 L-Patti per main rod at 4ft spacing
     
-    # Check if additional L-patti needed near last wall
-    last_distance = length - (FIRST_PATTI_DISTANCE + (num_spaces * PATTI_SPACING))
-    if last_distance > LAST_WALL_THRESHOLD:
-        num_patti += 1
+    # Calculate how many pieces we can get from one L-Patti based on linter spacing
+    pieces_per_l_patti = int(L_PATTI_LENGTH / linter_spacing)
     
-    return num_patti
+    # Calculate full L-Patti needed
+    full_l_patti_needed = ceil(total_pieces_needed / pieces_per_l_patti)
+    
+    # Calculate remaining pieces of same size
+    total_pieces_available = full_l_patti_needed * pieces_per_l_patti
+    remaining_pieces = total_pieces_available - total_pieces_needed
+    
+    return (full_l_patti_needed, total_pieces_needed, remaining_pieces, linter_spacing)
 
 def calculate_board_requirements(dimensions: RoomDimensions) -> tuple[float, float]:
     """Calculate plywood board requirements"""
@@ -172,15 +181,15 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     # Calculate screws (12 per foot of parameter)
     screws = ceil(total_parameter_length) * 12
     
-    # Calculate L-patti
-    l_patti_count = calculate_l_patti(max_length)
+    # Calculate L-patti with new logic
+    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(max_length, dimensions.linter_spacing)
     
     # Calculate black screws (2 per L-patti connection)
-    black_screws = l_patti_count * 2
+    black_screws = l_patti_cuts * 2
     
     # Calculate fasteners and clips (1 per L-patti)
-    fasteners = l_patti_count
-    fastener_clips = l_patti_count
+    fasteners = l_patti_cuts
+    fastener_clips = l_patti_cuts
     
     # Calculate board requirements
     board_count, board_extra_sqft = calculate_board_requirements(dimensions)
@@ -195,10 +204,14 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         total_parameter_length=round(total_parameter_length, 2),
         main_rods_length=round(main_rods_length, 2),
         cross_rods_length=round(cross_rods_length, 2),
-        l_patti_count=l_patti_count,
+        l_patti_count=l_patti_cuts,  # Total cuts needed
         black_screws=black_screws,
         fasteners=fasteners,
         fastener_clips=fastener_clips,
         board_count=board_count,
-        board_extra_sqft=board_extra_sqft
+        board_extra_sqft=board_extra_sqft,
+        full_l_patti_count=full_l_patti,
+        l_patti_cuts=l_patti_cuts,
+        l_patti_remaining=remaining_cuts,
+        l_patti_cut_size=cut_size
     )

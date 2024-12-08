@@ -111,7 +111,9 @@ def main():
         
         # Support Materials with detailed counts
         st.write("### Support Materials")
-        st.write(f"L-patti required: {results.l_patti_count}")
+        st.write(f"Full L-Patti Count (8ft): {results.full_l_patti_count}")
+        st.write(f"Cutting L-Patti: {results.l_patti_cuts} (Cut Size: {results.l_patti_cut_size:.2f}ft/piece)")
+        st.write(f"Remaining Cutted L-Patti: {results.l_patti_remaining} ({results.l_patti_cut_size:.2f}ft/piece)")
         st.write(f"Fasteners needed: {results.fasteners} (1 per L-patti)")
         st.write(f"Fastener clips needed: {results.fastener_clips} (1 per fastener)")
         st.write(f"Connecting clips needed: {results.connecting_clips} (at Main-Cross intersections)")
