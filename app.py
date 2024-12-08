@@ -1,6 +1,4 @@
-from flask import Flask, render_template, request
-
-app = Flask(__name__)
+import streamlit as st
 
 def convert_to_feet(value, unit):
     conversion_factors = {
@@ -24,42 +22,41 @@ def convert_from_feet(value, unit):
     }
     return value * conversion_factors[unit]
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+def main():
+    st.title('Ceiling Rod Calculation')
+    
+    # Input fields
+    length1 = st.number_input('Length 1', min_value=0.0)
+    length2 = st.number_input('Length 2', min_value=0.0)
+    width1 = st.number_input('Width 1', min_value=0.0)
+    width2 = st.number_input('Width 2', min_value=0.0)
+    
+    unit = st.selectbox('Unit', 
+                       ['cm', 'mm', 'inches', 'ft', 'm', 'yd'])
+    
+    if st.button('Calculate'):
+        try:
+            length1_in_feet = convert_to_feet(length1, unit)
+            length2_in_feet = convert_to_feet(length2, unit)
+            width1_in_feet = convert_to_feet(width1, unit)
+            width2_in_feet = convert_to_feet(width2, unit)
 
-@app.route('/calculate', methods=['POST'])
-def calculate():
-    try:
-        length1 = float(request.form['length1'])
-        length2 = float(request.form['length2'])
-        width1 = float(request.form['width1'])
-        width2 = float(request.form['width2'])
-        unit = request.form['unit']
+            horizontal_rods = max(length1_in_feet, length2_in_feet)
+            vertical_rods = max(width1_in_feet, width2_in_feet)
+            num_horizontal_rods = int(horizontal_rods / 2) + 1
+            num_vertical_rods = int(vertical_rods / 2) + 1
 
-        length1_in_feet = convert_to_feet(length1, unit)
-        length2_in_feet = convert_to_feet(length2, unit)
-        width1_in_feet = convert_to_feet(width1, unit)
-        width2_in_feet = convert_to_feet(width2, unit)
+            horizontal_rods = convert_from_feet(horizontal_rods, unit)
+            vertical_rods = convert_from_feet(vertical_rods, unit)
 
-        horizontal_rods = max(length1_in_feet, length2_in_feet)
-        vertical_rods = max(width1_in_feet, width2_in_feet)
-        num_horizontal_rods = int(horizontal_rods / 2) + 1
-        num_vertical_rods = int(vertical_rods / 2) + 1
-
-        horizontal_rods = convert_from_feet(horizontal_rods, unit)
-        vertical_rods = convert_from_feet(vertical_rods, unit)
-
-        return render_template('result.html', 
-                               num_horizontal_rods=num_horizontal_rods, 
-                               num_vertical_rods=num_vertical_rods, 
-                               horizontal_rods=horizontal_rods, 
-                               vertical_rods=vertical_rods,
-                               unit=unit)
-    except KeyError:
-        return "Invalid input. Please ensure all fields are filled out correctly."
-    except ValueError:
-        return "Invalid input. Please enter numeric values."
+            st.subheader('Results')
+            st.write(f'Number of Horizontal Rods: {num_horizontal_rods}')
+            st.write(f'Number of Vertical Rods: {num_vertical_rods}')
+            st.write(f'Length of Horizontal Rods: {horizontal_rods:.2f} {unit}')
+            st.write(f'Length of Vertical Rods: {vertical_rods:.2f} {unit}')
+            
+        except ValueError:
+            st.error('Invalid input. Please enter numeric values.')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    main()
