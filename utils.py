@@ -185,7 +185,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     # Use maximum dimensions for calculations
     max_length = max(dimensions.length1, dimensions.length2)
-    max_width = max(dimensions.length1, dimensions.length2)
+    max_width = max(dimensions.width1, dimensions.width2)
     
     main_rods_count, main_rods_length = calculate_main_rods(max_length)
     cross_rods_count, last_cross_length, min_width = calculate_cross_rods(
