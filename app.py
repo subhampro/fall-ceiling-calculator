@@ -96,6 +96,8 @@ def main():
         for i, length in enumerate(results.main_lengths):
             st.write(f"- Main {i+1}: {length:.2f} ft")
         st.write(f"- Last Main Length: {results.last_main_length:.2f} ft")
+        if results.extra_main_needed:
+            st.write(f"Extra Main Needed: {results.extra_main_needed} ft")
         
         st.write("### Cross Rods (3 inch × 1 inch)")
         st.write(f"Number of Cross Rods: {results.cross_rods}")

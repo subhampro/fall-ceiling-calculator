@@ -35,6 +35,7 @@ class CeilingCalculation:
     cross_lengths: list[float] = field(default_factory=list)
     main_lengths: list[float] = field(default_factory=list)
     last_main_length: float = 0.0
+    extra_main_needed: str = ""
 
 def calculate_rod_length_with_overlap(length: float, standard_length: float = 12.0, overlap: float = 4/12) -> tuple[int, float]:
     if length <= standard_length:
@@ -61,11 +62,12 @@ def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
     
     return full_rods, round(extra_length, 2)
 
-def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[int, list[float], float]:
+def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[int, list[float], float, str]:
     FIRST_DISTANCE = 2
     SPACING = 4
     STANDARD_LENGTH = 12
     WALL_THRESHOLD = 3.5
+    INCH_TO_FEET = 1 / 12
     
     positions = []
     current_pos = FIRST_DISTANCE
@@ -79,14 +81,17 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
         positions.append(min(width, positions[-1] + SPACING))
     
     main_lengths = []
+    total_extra_main_needed = 0.0
     for pos in positions:
         length_at_pos = length1 + (length2 - length1) * (pos / width)
         main_lengths.append(length_at_pos)
+        if length_at_pos > STANDARD_LENGTH:
+            extra_length = length_at_pos - STANDARD_LENGTH + 5 * INCH_TO_FEET
+            total_extra_main_needed += extra_length
     
     main_count = len(positions)
-    last_main_length = main_lengths[-1] if main_lengths else 0
     
-    return main_count, main_lengths, last_main_length
+    return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, f"{total_extra_main_needed:.2f} ft"
 
 def calculate_cross_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, list[float], float]:
     FIRST_DISTANCE = 2
@@ -163,7 +168,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     max_width = max(dimensions.width1, dimensions.width2)
     
-    main_rods_count, main_lengths, last_main_length = calculate_main_rods(
+    main_rods_count, main_lengths, last_main_length, extra_main_needed = calculate_main_rods(
         dimensions.length1,
         dimensions.length2,
         max_width
@@ -218,5 +223,6 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         last_cross_length=round(last_cross_length, 2),
         cross_lengths=cross_lengths,
         main_lengths=main_lengths,
-        last_main_length=round(last_main_length, 2)
+        last_main_length=round(last_main_length, 2),
+        extra_main_needed=extra_main_needed
     )
