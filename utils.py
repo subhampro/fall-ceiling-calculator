@@ -41,40 +41,41 @@ def calculate_rod_length_with_overlap(length: float, standard_length: float = 12
     return full_rods, total_length
 
 def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
-    """Calculate parameters (1 inch × 1 inch steel rods)"""
+    """Calculate parameters with exact 4-inch overlaps"""
     STANDARD_LENGTH = 12  # feet
-    OVERLAP = 4/12  # 4 inches overlap
+    OVERLAP = 4/12  # 4 inches in feet
     
     total_perimeter = dimensions.length1 + dimensions.length2 + dimensions.width1 + dimensions.width2
-    # Calculate with proper overlaps
-    effective_length = total_perimeter - OVERLAP  # Remove one overlap length
-    full_rods = ceil(effective_length / (STANDARD_LENGTH - OVERLAP))
+    
+    # Calculate full rods needed considering overlap at each joint
+    full_rods = ceil((total_perimeter - OVERLAP) / (STANDARD_LENGTH - OVERLAP))
     total_length = total_perimeter + ((full_rods - 1) * OVERLAP)
     
-    extra_length = total_length % STANDARD_LENGTH
-    if extra_length > 0:
-        extra_length = round(extra_length + OVERLAP, 2)  # Add overlap for joining
+    extra_length = 0
+    if total_length > (full_rods * STANDARD_LENGTH):
+        extra_length = round(total_length - (full_rods * STANDARD_LENGTH) + OVERLAP, 2)
     
     return full_rods, extra_length
 
 def calculate_main_rods(length: float) -> tuple[int, float]:
-    """Calculate main/enter rods (1 inch × 2 inch height)"""
+    """Calculate main/enter rods with 2ft wall distance and 4ft spacing"""
     FIRST_DISTANCE = 2  # feet from wall
-    SPACING = 4  # feet between rods
+    SPACING = 4  # feet between centers
     LAST_THRESHOLD = 3.5  # maximum allowed from last wall
     OVERLAP = 4/12  # 4 inch overlap
     
-    usable_length = length - (2 * FIRST_DISTANCE)
-    num_spaces = ceil(usable_length / SPACING)
+    # Calculate main rods needed
+    working_length = length - (2 * FIRST_DISTANCE)
+    num_spaces = ceil(working_length / SPACING)
     num_rods = num_spaces + 1
     
-    # Check last wall distance and add rod if needed
-    last_distance = length - (FIRST_DISTANCE + (num_spaces * SPACING))
-    if last_distance > LAST_THRESHOLD:
+    # Check if additional rod needed near last wall
+    last_dist = length - (FIRST_DISTANCE + (num_spaces * SPACING))
+    if last_dist > LAST_THRESHOLD:
         num_rods += 1
     
-    # Total length needed with overlaps
-    total_length = length + ((num_rods - 1) * OVERLAP)
+    # Calculate total length needed with overlaps
+    total_length = (num_rods * 12) - ((num_rods - 1) * (12 - OVERLAP))
     
     return num_rods, total_length
 

@@ -84,28 +84,30 @@ def main():
         st.subheader('Calculation Results')
         
         # Parameters
-        st.write("### Steel Parameters (1 inch × 1 inch)")
-        st.write(f"Room Perimeter: {results.total_parameter_length:.2f} ft")
-        param_text = f"{results.parameters_full} full rods (12ft each)"
+        st.write("### Parameters (1 inch × 1 inch Steel Rods)")
+        st.write(f"Total Perimeter Length: {results.total_parameter_length:.2f} ft")
+        st.write(f"Full Parameters (12ft each): {results.parameters_full}")
         if results.parameters_extra > 0:
-            param_text += f" + {results.parameters_extra:.2f} ft extra (including 4 inch overlap)"
-        st.write(f"Parameters needed: {param_text}")
+            st.write(f"Extra Parameter Length: {results.parameters_extra:.2f} ft (with 4 inch overlap)")
         
-        # Main/Enter Details
+        # Main/Enter with exact measurements
         st.write("### Main/Enter Rods (1 inch × 2 inch)")
-        st.write(f"Main rods needed: {results.main_rods}")
+        st.write(f"Number of Main Rods: {results.main_rods}")
+        st.write(f"Main Rod Details:")
+        st.write("- First rod: 2ft from wall")
+        st.write("- Spacing between rods: 4ft")
+        st.write(f"- Total length needed: {results.main_rods_length:.2f} ft")
         if results.main_rods_length > (results.main_rods * 12):
-            extra_length = results.main_rods_length - (results.main_rods * 12)
-            st.write(f"Extra length needed: {extra_length:.2f} ft (with 4 inch overlaps)")
-        st.write("Spacing: 2ft from walls, 4ft between rods")
+            extra = results.main_rods_length - (results.main_rods * 12)
+            st.write(f"- Extra pieces needed: {extra:.2f} ft (including 4 inch overlaps)")
         
-        # Cross Rod Details
+        # Cross rods with center measurements
         st.write("### Cross Rods (3 inch × 1 inch)")
-        st.write(f"Cross rods needed: {results.cross_rods}")
-        if results.cross_rods_length > (results.cross_rods * 12):
-            extra_length = results.cross_rods_length - (results.cross_rods * 12)
-            st.write(f"Extra length needed: {extra_length:.2f} ft (with 4 inch overlaps)")
-        st.write("Spacing: 2ft from walls to center, 2ft between centers")
+        st.write(f"Number of Cross Rods: {results.cross_rods}")
+        st.write("Cross Rod Details:")
+        st.write("- Center spacing: 2ft between rods")
+        st.write("- First rod center: 2ft from wall")
+        st.write(f"- Total length needed: {results.cross_rods_length:.2f} ft")
         
         # Support Materials with detailed counts
         st.write("### Support Materials")
