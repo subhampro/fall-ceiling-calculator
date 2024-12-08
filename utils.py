@@ -104,6 +104,8 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     SPACING = 2  # feet between centers
     MIN_THRESHOLD = 2  # minimum required distance from last wall
     MAX_THRESHOLD = 2.5  # maximum allowed distance from last wall
+    OVERLAP = 4/12  # 4 inch overlap
+    STANDARD_LENGTH = 12  # standard rod length in feet
     
     longer_wall = max(length1, length2)
     shorter_wall = min(length1, length2)
@@ -125,11 +127,6 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     if positions and (longer_wall - positions[-1]) > MAX_THRESHOLD:
         positions.append(positions[-1] + SPACING)
     
-    # Debug print
-    print(f"Cross positions: {positions}")  # This will help verify positions
-    
-    num_rods = len(positions)
-    
     # Calculate the length of each cross rod based on varying widths
     cross_lengths = []
     for pos in positions:
@@ -139,7 +136,11 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     # Calculate last cross length
     last_cross_length = cross_lengths[-1] if cross_lengths else 0
     
-    return num_rods, cross_lengths, last_cross_length
+    # Calculate the number of cross rods needed, considering overlaps
+    total_cross_length = sum(cross_lengths)
+    num_cross_rods = ceil(total_cross_length / STANDARD_LENGTH)
+    
+    return num_cross_rods, cross_lengths, last_cross_length
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
