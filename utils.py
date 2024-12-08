@@ -31,6 +31,7 @@ class CeilingCalculation:
     l_patti_cuts: int            # New: number of pieces after cutting
     l_patti_remaining: int       # New: remaining pieces of same size
     l_patti_cut_size: float     # New: size of each cut piece
+    last_cross_length: float  # New field for last cross rod length
 
 def calculate_rod_length_with_overlap(length: float, standard_length: float = 12.0, overlap: float = 4/12) -> tuple[int, float]:
     """Calculate number of rods needed and extra length including overlaps"""
@@ -96,35 +97,35 @@ def calculate_main_rods(length: float) -> tuple[int, float]:
     
     return num_rods, total_length
 
-def calculate_cross_rods(width: float) -> tuple[int, float]:
-    """Calculate cross rods (3 inch × 1 inch) with 2ft spacing"""
+def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, float]:
+    """Calculate cross rods positions and lengths for non-rectangular rooms"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 2  # feet between centers
-    LAST_THRESHOLD = 2.3  # maximum allowed distance from last wall
-    OVERLAP = 4/12  # 4 inch overlap
-    STANDARD_LENGTH = 12  # feet
+    LAST_THRESHOLD = 2  # minimum distance from last wall
     
-    # Calculate positions of rods
+    max_width = max(width1, width2)
+    min_width = min(width1, width2)
+    
+    # Calculate all possible cross positions at 2ft intervals
     positions = []
     current_pos = FIRST_DISTANCE
     
-    while current_pos <= width:
-        positions.append(current_pos)
+    while current_pos <= max_width:
+        if current_pos <= max_width - LAST_THRESHOLD:
+            positions.append(current_pos)
         current_pos += SPACING
-    
-    # Remove last position if it's too close to the wall
-    if width - positions[-1] < LAST_THRESHOLD:
-        positions.pop()
     
     num_rods = len(positions)
     
-    # Calculate total length - only add overlaps if width > 12ft
-    if width <= STANDARD_LENGTH:
-        total_length = width * num_rods
-    else:
-        total_length = width + ((num_rods - 1) * OVERLAP)
+    # Calculate last cross length
+    last_position = positions[-1] if positions else 0
+    last_cross_length = min_width  # Default length for normal cases
     
-    return num_rods, total_length
+    # If the last position would extend beyond shorter wall
+    if last_position > min_width:
+        last_cross_length = min_width
+    
+    return num_rods, last_cross_length, min_width
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
@@ -176,7 +177,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     max_width = max(dimensions.width1, dimensions.width2)
     
     main_rods_count, main_rods_length = calculate_main_rods(max_length)
-    cross_rods_count, cross_rods_length = calculate_cross_rods(max_width)
+    cross_rods_count, last_cross_length, min_width = calculate_cross_rods(dimensions.width1, dimensions.width2)
     
     # Calculate connecting clips (intersection points)
     connecting_clips = main_rods_count * cross_rods_count
@@ -204,6 +205,9 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     room_area = calculate_room_area(dimensions)
     black_screw_boxes = ceil(room_area / 1000)  # 1 box per 1000 sqft
     
+    # Update cross_rods_length calculation
+    cross_rods_length = (cross_rods_count - 1) * min_width + last_cross_length
+    
     return CeilingCalculation(
         parameters_full=params_full,
         parameters_extra=round(params_extra, 2),
@@ -223,5 +227,6 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         full_l_patti_count=full_l_patti,
         l_patti_cuts=l_patti_cuts,
         l_patti_remaining=remaining_cuts,
-        l_patti_cut_size=cut_size
+        l_patti_cut_size=cut_size,
+        last_cross_length=round(last_cross_length, 2)
     )
