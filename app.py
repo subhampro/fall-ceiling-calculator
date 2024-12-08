@@ -52,6 +52,13 @@ def main():
         ['ft', 'mm', 'cm', 'inches', 'm', 'yd']
     )
     
+    # Add Linter Spacing input at the top
+    linter_spacing = st.number_input(
+        f'Linter Spacing (Chad to Main Rod Height) ({unit})',
+        min_value=0.0,
+        help="Distance from Chad to the starting width of Main/Enter"
+    )
+    
     st.subheader('Room Measurements')
     col1, col2 = st.columns(2)
     
@@ -68,26 +75,39 @@ def main():
             convert_to_feet(length1, unit),
             convert_to_feet(length2, unit),
             convert_to_feet(width1, unit),
-            convert_to_feet(width2, unit)
+            convert_to_feet(width2, unit),
+            convert_to_feet(linter_spacing, unit)
         )
         
         results = calculate_ceiling_requirements(dimensions)
         
         st.subheader('Calculation Results')
+        
+        # Basic Materials
+        st.write("### Basic Materials")
         st.write(f"Parameters needed: {results.parameters_full} full rods (12ft) + {results.parameters_extra:.2f} ft extra")
         st.write(f"Main rods needed: {results.main_rods}")
         st.write(f"Cross rods needed: {results.cross_rods}")
-        st.write(f"Connecting clips required: {results.connecting_clips}")
-        st.write(f"Screws required: {results.screws}")
         st.write(f"Total parameter length: {results.total_parameter_length:.2f} ft")
         
-        excel_data = generate_excel_download(results)
-        st.download_button(
-            label="Download Excel Report",
-            data=excel_data,
-            file_name="ceiling_calculation.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        # Support Materials
+        st.write("### Support Materials")
+        st.write(f"L-patti required: {results.l_patti_count}")
+        st.write(f"Fasteners needed: {results.fasteners}")
+        st.write(f"Fastener clips needed: {results.fastener_clips}")
+        
+        # Screws and Clips
+        st.write("### Screws and Clips")
+        st.write(f"Regular screws required: {results.screws}")
+        st.write(f"Black screws required (for L-patti): {results.black_screws}")
+        st.write(f"Connecting clips required: {results.connecting_clips}")
+        
+        # Board Requirements
+        st.write("### Board Requirements")
+        if results.board_extra_sqft > 0:
+            st.write(f"Plywood Boards (6ft × 4ft): {int(results.board_count)} boards + {results.board_extra_sqft} sqft extra")
+        else:
+            st.write(f"Plywood Boards (6ft × 4ft): {int(results.board_count)} boards")
 
 if __name__ == '__main__':
     main()
