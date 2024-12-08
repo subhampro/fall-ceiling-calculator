@@ -79,16 +79,15 @@ def calculate_main_rods(width: float) -> tuple[int, list[float], float]:
     positions = []
     current_pos = FIRST_DISTANCE
     
-    # Keep adding positions until we exceed the width
-    while current_pos <= width:
+    # Keep adding positions until we exceed the width, or remaining space is less than threshold
+    while current_pos < width:
         positions.append(current_pos)
         current_pos += SPACING
-    
-    # If distance from last rod to wall is > WALL_THRESHOLD, add one more rod
-    if positions and (width - positions[-1]) >= WALL_THRESHOLD:
-        positions.append(current_pos)
-    
-    # For your case with width=14ft, positions will be [2, 6, 10, 14]
+
+    # Important: Check if we need one more rod based on distance to wall
+    remaining_space = width - positions[-1]
+    if remaining_space >= WALL_THRESHOLD:
+        positions.append(min(width, positions[-1] + SPACING))
     
     # Always use full 12ft rods for main/enter
     main_lengths = [STANDARD_LENGTH] * len(positions)
@@ -187,11 +186,10 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     # Calculate parameters
     params_full, params_extra = calculate_parameters(dimensions)
     
-    # Use maximum dimensions for calculations
-    max_length = max(dimensions.length1, dimensions.length2)
-    max_width = max(dimensions.length1, dimensions.length2)
+    # Use maximum width instead of length for main rods
+    max_width = max(dimensions.width1, dimensions.width2)
     
-    main_rods_count, main_lengths, last_main_length = calculate_main_rods(max_length)
+    main_rods_count, main_lengths, last_main_length = calculate_main_rods(max_width)
     cross_rods_count, cross_lengths, last_cross_length = calculate_cross_rods(
         dimensions.length1,  # Use lengths for positioning
         dimensions.length2,
@@ -209,7 +207,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     screws = ceil(total_parameter_length) * 12
     
     # Calculate L-patti with new logic
-    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(max_length, dimensions.linter_spacing)
+    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(max_width, dimensions.linter_spacing)
     
     # Calculate black screws (2 per L-patti connection)
     black_screws = l_patti_cuts * 2
