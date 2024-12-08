@@ -97,8 +97,8 @@ def calculate_main_rods(length: float) -> tuple[int, float]:
     
     return num_rods, total_length
 
-def calculate_cross_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, float, float]:
-    """Calculate cross rods with 2ft spacing considering different wall lengths"""
+def calculate_cross_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, list[float], float]:
+    """Calculate cross rods with 2ft spacing considering different wall lengths and varying widths"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 2  # feet between centers
     MIN_THRESHOLD = 2  # minimum required distance from last wall
@@ -106,7 +106,6 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     
     longer_wall = max(length1, length2)
     shorter_wall = min(length1, length2)
-    shorter_width = min(width1, width2)
     
     # Calculate positions of crosses
     positions = []
@@ -130,13 +129,16 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     
     num_rods = len(positions)
     
-    # Calculate last cross length
-    if positions[-1] > shorter_wall:
-        last_cross_length = shorter_width - (positions[-1] - shorter_wall)
-    else:
-        last_cross_length = shorter_width
+    # Calculate the length of each cross rod based on varying widths
+    cross_lengths = []
+    for pos in positions:
+        width_at_pos = width1 + (width2 - width1) * (pos / longer_wall)
+        cross_lengths.append(width_at_pos)
     
-    return num_rods, last_cross_length, shorter_width
+    # Calculate last cross length
+    last_cross_length = cross_lengths[-1] if cross_lengths else 0
+    
+    return num_rods, cross_lengths, last_cross_length
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
@@ -188,7 +190,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     max_width = max(dimensions.width1, dimensions.width2)
     
     main_rods_count, main_rods_length = calculate_main_rods(max_length)
-    cross_rods_count, last_cross_length, min_width = calculate_cross_rods(
+    cross_rods_count, cross_lengths, last_cross_length = calculate_cross_rods(
         dimensions.length1,  # Use lengths for positioning
         dimensions.length2,
         dimensions.width1,   # Use widths for cross lengths
@@ -222,7 +224,7 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     black_screw_boxes = ceil(room_area / 1000)  # 1 box per 1000 sqft
     
     # Update cross_rods_length calculation
-    cross_rods_length = (cross_rods_count - 1) * min_width + last_cross_length
+    cross_rods_length = sum(cross_lengths)
     
     return CeilingCalculation(
         parameters_full=params_full,

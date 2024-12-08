@@ -107,6 +107,8 @@ def main():
         st.write("Cross Rod Details:")
         st.write("- First rod: 2ft from wall")
         st.write("- Spacing: 2ft between rods")
+        for i, length in enumerate(results.cross_lengths):
+            st.write(f"- Cross {i+1}: {length:.2f} ft")
         st.write(f"- Last Cross Length: {results.last_cross_length:.2f} ft")
         
         # Support Materials with detailed counts
