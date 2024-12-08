@@ -83,26 +83,28 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
     
     main_lengths = []
     total_extra_needed = 0.0
-    overlaps_needed = 0
+    extra_rods_needed = 0
     
     for pos in positions:
         length_at_pos = length1 + (length2 - length1) * (pos / width)
         main_lengths.append(length_at_pos)
         if length_at_pos > STANDARD_LENGTH:
+            # Calculate extra length needed
             extra_length = length_at_pos - STANDARD_LENGTH
             total_extra_needed += extra_length
-            # Count how many overlaps needed (one for each piece after the first)
-            overlaps_needed += ceil(extra_length / STANDARD_LENGTH)
+            
+            # Calculate number of additional rods needed
+            # For 20ft: need 4 rods total (3 full + 1 partial) = 3 extra rods
+            additional_rods_needed = ceil(extra_length / STANDARD_LENGTH)
+            if additional_rods_needed > 0:
+                # Add overlaps for joins
+                total_extra_needed += (additional_rods_needed * OVERLAP)
+            extra_rods_needed += additional_rods_needed
     
-    # Add overlap length to total_extra_needed
-    total_extra_needed += (overlaps_needed * OVERLAP)
-    
-    # If total extra needed is less than standard length (12ft),
-    # we only need one additional rod for all extra pieces
-    extra_rods_needed = 1 if total_extra_needed > 0 else 0
+    # Calculate total main rods needed (base positions + extra rods)
     main_count = len(positions) + extra_rods_needed
     
-    # Show total extra needed with FT unit if it's greater than 0
+    # Format the extra needed string with FT unit
     extra_needed_str = f"{total_extra_needed:.2f} FT" if total_extra_needed > 0 else ""
     
     return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, extra_needed_str
