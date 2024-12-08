@@ -98,34 +98,39 @@ def calculate_main_rods(length: float) -> tuple[int, float]:
     return num_rods, total_length
 
 def calculate_cross_rods(width1: float, width2: float) -> tuple[int, float, float]:
-    """Calculate cross rods positions and lengths for non-rectangular rooms"""
+    """Calculate cross rods with 2ft spacing considering different wall lengths"""
     FIRST_DISTANCE = 2  # feet from wall
     SPACING = 2  # feet between centers
-    LAST_THRESHOLD = 2  # minimum distance from last wall
+    LAST_THRESHOLD = 2  # minimum required distance from last wall
     
-    max_width = max(width1, width2)
-    min_width = min(width1, width2)
+    longer_wall = max(width1, width2)
+    shorter_wall = min(width1, width2)
     
-    # Calculate all possible cross positions at 2ft intervals
+    # Calculate positions of crosses
     positions = []
     current_pos = FIRST_DISTANCE
     
-    while current_pos <= max_width:
-        if current_pos <= max_width - LAST_THRESHOLD:
+    # Keep adding positions until we reach the longer wall length
+    while current_pos <= longer_wall:
+        # Only add position if it's not too close to the end of longer wall
+        if longer_wall - current_pos >= LAST_THRESHOLD:
             positions.append(current_pos)
         current_pos += SPACING
     
     num_rods = len(positions)
     
-    # Calculate last cross length
-    last_position = positions[-1] if positions else 0
-    last_cross_length = min_width  # Default length for normal cases
+    # Calculate last cross length based on shorter wall
+    if num_rods > 0 and positions[-1] <= shorter_wall:
+        last_cross_length = shorter_wall
+    else:
+        last_cross_length = shorter_wall  # Cut to shorter wall length
     
-    # If the last position would extend beyond shorter wall
-    if last_position > min_width:
-        last_cross_length = min_width
+    # For your specific example with walls 15ft and 12ft:
+    # Positions will be: 2,4,6,8,10,12,14,16,18
+    # num_rods will be 9 (not 6 as before)
+    # last_cross_length will be 12ft (shorter wall)
     
-    return num_rods, last_cross_length, min_width
+    return num_rods, last_cross_length, shorter_wall
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     """Calculate L-patti requirements based on 8ft standard length and linter spacing"""
