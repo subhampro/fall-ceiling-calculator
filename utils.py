@@ -41,16 +41,17 @@ def calculate_rod_length_with_overlap(length: float, standard_length: float = 12
     return full_rods, total_length
 
 def calculate_parameters(dimensions: RoomDimensions) -> tuple[int, float]:
-    """Calculate parameters needed for the perimeter"""
+    """Calculate parameters needed for the perimeter including 4 inch overlaps"""
     STANDARD_LENGTH = 12  # feet
     OVERLAP = 4/12  # 4 inches in feet
     
+    # Calculate perimeter using average of lengths and widths
     total_perimeter = dimensions.length1 + dimensions.length2 + dimensions.width1 + dimensions.width2
-    full_rods, total_length = calculate_rod_length_with_overlap(total_perimeter)
+    full_rods, total_length = calculate_rod_length_with_overlap(total_perimeter, STANDARD_LENGTH, OVERLAP)
     
     extra_length = total_length % STANDARD_LENGTH
     if extra_length > 0:
-        extra_length = round(extra_length, 2)
+        extra_length = round(extra_length + OVERLAP, 2)  # Add overlap for the extra piece
     
     return full_rods, extra_length
 
@@ -58,16 +59,18 @@ def calculate_main_rods(length: float) -> tuple[int, float]:
     """Calculate main rods with 4ft spacing and 2ft from walls"""
     FIRST_ROD_DISTANCE = 2  # feet from wall
     ROD_SPACING = 4  # feet between rods
+    LAST_WALL_THRESHOLD = 3.5  # maximum allowed distance from last wall
     
-    # Calculate number of spaces between rods
     usable_length = length - (2 * FIRST_ROD_DISTANCE)
     num_spaces = ceil(usable_length / ROD_SPACING)
     num_rods = num_spaces + 1
     
-    # Calculate total rod length needed including overlaps
-    rods, total_length = calculate_rod_length_with_overlap(length)
-    
-    return num_rods, total_length
+    # Check if additional rod needed near last wall
+    last_distance = length - (FIRST_ROD_DISTANCE + (num_spaces * ROD_SPACING))
+    if last_distance > LAST_WALL_THRESHOLD:
+        num_rods += 1
+        
+    return num_rods, length
 
 def calculate_cross_rods(width: float) -> tuple[int, float]:
     """Calculate cross rods with 2ft spacing and 2ft from walls"""
