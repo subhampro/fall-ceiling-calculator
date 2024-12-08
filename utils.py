@@ -67,7 +67,6 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
     SPACING = 4
     STANDARD_LENGTH = 12
     WALL_THRESHOLD = 3.5
-    INCH_TO_FEET = 1 / 12
     
     positions = []
     current_pos = FIRST_DISTANCE
@@ -81,28 +80,24 @@ def calculate_main_rods(length1: float, length2: float, width: float) -> tuple[i
         positions.append(min(width, positions[-1] + SPACING))
     
     main_lengths = []
-    total_extra_main_needed = 0.0
+    total_extra_needed = 0.0
     
     for pos in positions:
         length_at_pos = length1 + (length2 - length1) * (pos / width)
         main_lengths.append(length_at_pos)
         if length_at_pos > STANDARD_LENGTH:
             extra_length = length_at_pos - STANDARD_LENGTH
-            total_extra_main_needed += extra_length
-
-    # Only add extra main rod if total extra needed is more than one standard length
-    extra_main_count = 0
-    if total_extra_main_needed > STANDARD_LENGTH:
-        extra_main_count = ceil(total_extra_main_needed / STANDARD_LENGTH)
+            total_extra_needed += extra_length
     
-    main_count = len(positions) + extra_main_count
+    # If total extra needed is less than standard length (12ft),
+    # we only need one additional rod for all extra pieces
+    extra_rods_needed = 1 if total_extra_needed > 0 else 0
+    main_count = len(positions) + extra_rods_needed
     
-    # If there's extra needed but less than standard length, report it
-    extra_needed = ""
-    if 0 < total_extra_main_needed <= STANDARD_LENGTH:
-        extra_needed = f"{total_extra_main_needed:.2f}"
+    # Show total extra needed if it's greater than 0
+    extra_needed_str = f"{total_extra_needed:.2f}" if total_extra_needed > 0 else ""
     
-    return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, extra_needed
+    return main_count, main_lengths, main_lengths[-1] if main_lengths else 0, extra_needed_str
 
 def calculate_cross_rods(length1: float, length2: float, width1: float, width2: float) -> tuple[int, list[float], float]:
     FIRST_DISTANCE = 2
