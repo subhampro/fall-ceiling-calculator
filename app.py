@@ -84,44 +84,50 @@ def main():
         st.subheader('Calculation Results')
         
         # Parameters (1 inch × 1 inch)
-        st.write("### Parameters")
+        st.write("### Parameters (1 inch × 1 inch)")
         param_text = f"{results.parameters_full} full rods (12ft)"
         if results.parameters_extra > 0:
-            param_text += f" + {results.parameters_extra:.2f} ft extra (including 4 inch overlap)"
+            param_text += f" + {results.parameters_extra:.2f} ft (including 4 inch overlap for joining)"
         st.write(f"Parameters needed: {param_text}")
-        st.write(f"Total parameter length: {results.total_parameter_length:.2f} ft")
+        st.write(f"Total parameter length needed: {results.total_parameter_length:.2f} ft")
         
-        # Main/Enter Details
-        st.write("### Main/Enter Rods (2 inch × 1 inch)")
-        st.write(f"Number of main rods: {results.main_rods}")
-        st.write(f"Total main rod length: {results.main_rods_length:.2f} ft (including 4 inch overlaps)")
-        st.write("Spacing: 2ft from walls, 4ft between centers")
+        # Main/Enter Details with exact measurements
+        st.write("### Main/Enter Rods (1 inch × 2 inch height)")
+        main_text = f"Number of main rods: {results.main_rods}"
+        if results.main_rods_length > (results.main_rods * 12):
+            extra = results.main_rods_length - (results.main_rods * 12)
+            main_text += f" (with {extra:.2f} ft extra including overlaps)"
+        st.write(main_text)
+        st.write("Spacing: 2ft from walls, 4ft between rods")
         
-        # Cross Rod Details
+        # Cross Rods with center-based measurements
         st.write("### Cross Rods (3 inch × 1 inch)")
-        st.write(f"Number of cross rods: {results.cross_rods}")
-        st.write(f"Total cross rod length: {results.cross_rods_length:.2f} ft (including 4 inch overlaps)")
+        cross_text = f"Number of cross rods: {results.cross_rods}"
+        if results.cross_rods_length > (results.cross_rods * 12):
+            extra = results.cross_rods_length - (results.cross_rods * 12)
+            cross_text += f" (with {extra:.2f} ft extra including overlaps)"
+        st.write(cross_text)
         st.write("Spacing: 2ft from walls to center, 2ft between centers")
         
-        # Support Materials
+        # Support Materials with detailed counts
         st.write("### Support Materials")
-        st.write(f"L-patti required: {results.l_patti_count} (3ft from walls, 4ft spacing)")
-        st.write(f"Fasteners: {results.fasteners}")
-        st.write(f"Fastener clips: {results.fastener_clips}")
-        st.write(f"Connecting clips: {results.connecting_clips} (at Main-Cross intersections)")
+        st.write(f"L-patti required: {results.l_patti_count}")
+        st.write(f"Fasteners needed: {results.fasteners} (1 per L-patti)")
+        st.write(f"Fastener clips needed: {results.fastener_clips} (1 per fastener)")
+        st.write(f"Connecting clips needed: {results.connecting_clips} (at Main-Cross intersections)")
         
-        # Screws
+        # Screws with specific counts
         st.write("### Screws")
         st.write(f"Regular screws: {results.screws} (1ft spacing on parameters)")
         st.write(f"Black screws: {results.black_screws} (2 per L-patti)")
         
-        # Board Requirements
-        st.write("### Plywood Board Requirements (6ft × 4ft × 0.5inch)")
-        board_text = f"{int(results.board_count)} full boards"
+        # Detailed Board Requirements
+        st.write("### Plywood Boards (6ft × 4ft × 0.5inch)")
         if results.board_extra_sqft > 0:
-            extra_boards = results.board_extra_sqft / 24
-            board_text += f" + {results.board_extra_sqft:.2f} sqft ({extra_boards:.2f} boards) extra"
-        st.write(board_text)
+            st.write(f"Full boards needed: {int(results.board_count)}")
+            st.write(f"Extra area needed: {results.board_extra_sqft:.2f} sqft ({results.board_extra_sqft/24:.2f} boards)")
+        else:
+            st.write(f"Full boards needed: {int(results.board_count)}")
 
 if __name__ == '__main__':
     main()
