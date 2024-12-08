@@ -8,6 +8,7 @@ class RoomDimensions:
     length2: float
     width1: float
     width2: float
+    linter_spacing: float  # New field for linter/chad height
 
 @dataclass
 class CeilingCalculation:
@@ -20,6 +21,12 @@ class CeilingCalculation:
     total_parameter_length: float
     main_rods_length: float
     cross_rods_length: float
+    l_patti_count: int  # New field
+    black_screws: int   # New field
+    fasteners: int      # New field
+    fastener_clips: int # New field
+    board_count: float  # New field
+    board_extra_sqft: float  # New field
 
 def calculate_rod_length_with_overlap(length: float, standard_length: float = 12.0, overlap: float = 4/12) -> tuple[int, float]:
     """Calculate number of rods needed and extra length including overlaps"""
@@ -77,6 +84,36 @@ def calculate_cross_rods(width: float) -> tuple[int, float]:
     
     return num_rods, total_length
 
+def calculate_l_patti(length: float) -> int:
+    """Calculate L-patti count with 3ft from first wall and 4ft spacing"""
+    FIRST_PATTI_DISTANCE = 3  # feet from wall
+    PATTI_SPACING = 4  # feet between L-patti
+    LAST_WALL_THRESHOLD = 3.5  # maximum allowed distance from last wall
+    
+    usable_length = length - (2 * FIRST_PATTI_DISTANCE)
+    num_spaces = ceil(usable_length / PATTI_SPACING)
+    num_patti = num_spaces + 1
+    
+    # Check if additional L-patti needed near last wall
+    last_distance = length - (FIRST_PATTI_DISTANCE + (num_spaces * PATTI_SPACING))
+    if last_distance > LAST_WALL_THRESHOLD:
+        num_patti += 1
+    
+    return num_patti
+
+def calculate_board_requirements(dimensions: RoomDimensions) -> tuple[float, float]:
+    """Calculate plywood board requirements"""
+    BOARD_LENGTH = 6  # feet
+    BOARD_WIDTH = 4   # feet
+    BOARD_AREA = BOARD_LENGTH * BOARD_WIDTH  # 24 sqft
+    
+    room_area = ((dimensions.length1 + dimensions.length2) / 2) * ((dimensions.width1 + dimensions.width2) / 2)
+    boards_needed = room_area / BOARD_AREA
+    full_boards = int(boards_needed)
+    extra_sqft = round((boards_needed - full_boards) * BOARD_AREA, 2)
+    
+    return full_boards, extra_sqft
+
 def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalculation:
     # Calculate parameters
     params_full, params_extra = calculate_parameters(dimensions)
@@ -97,6 +134,19 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     # Calculate screws (12 per foot of parameter)
     screws = ceil(total_parameter_length) * 12
     
+    # Calculate L-patti
+    l_patti_count = calculate_l_patti(max_length)
+    
+    # Calculate black screws (2 per L-patti connection)
+    black_screws = l_patti_count * 2
+    
+    # Calculate fasteners and clips (1 per L-patti)
+    fasteners = l_patti_count
+    fastener_clips = l_patti_count
+    
+    # Calculate board requirements
+    board_count, board_extra_sqft = calculate_board_requirements(dimensions)
+    
     return CeilingCalculation(
         parameters_full=params_full,
         parameters_extra=round(params_extra, 2),
@@ -106,5 +156,11 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
         screws=screws,
         total_parameter_length=round(total_parameter_length, 2),
         main_rods_length=round(main_rods_length, 2),
-        cross_rods_length=round(cross_rods_length, 2)
+        cross_rods_length=round(cross_rods_length, 2),
+        l_patti_count=l_patti_count,
+        black_screws=black_screws,
+        fasteners=fasteners,
+        fastener_clips=fastener_clips,
+        board_count=board_count,
+        board_extra_sqft=board_extra_sqft
     )
