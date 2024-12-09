@@ -147,22 +147,22 @@ def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, i
     FIRST_DISTANCE = 3  # First L-patti at 3ft from wall
     SPACING = 4         # 4ft spacing between L-pattis
     
-    # Calculate L-pattis needed for one main rod
+    # Calculate L-patti positions for a single main rod
     positions = []
     current_pos = FIRST_DISTANCE
-    while current_pos <= length:
+    while current_pos <= (length - 3):  # Ensure 3ft from end wall
         positions.append(current_pos)
         current_pos += SPACING
     
     l_pattis_per_main = len(positions)
     
-    # Calculate number of main rods (from existing main rod calculation)
-    main_rods = ceil((length - 4) / 4) + 1
+    # Calculate number of main rods
+    main_rods = ceil(length / SPACING)
     
     # Total L-patti cuts needed (l_pattis_per_main × number of main rods)
     total_cuts_needed = l_pattis_per_main * main_rods
     
-    # Calculate full L-patti pieces needed
+    # Calculate how many full 8ft L-pattis needed
     pieces_per_l_patti = int(L_PATTI_LENGTH / linter_spacing)
     full_l_patti_needed = ceil(total_cuts_needed / pieces_per_l_patti)
     
