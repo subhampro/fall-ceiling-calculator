@@ -144,20 +144,33 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
 
 def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
     L_PATTI_LENGTH = 8
-    SPACING = 4
+    FIRST_DISTANCE = 3  # First L-patti at 3ft from wall
+    SPACING = 4         # 4ft spacing between L-pattis
     
+    # Calculate L-pattis needed for one main rod
+    positions = []
+    current_pos = FIRST_DISTANCE
+    while current_pos <= length:
+        positions.append(current_pos)
+        current_pos += SPACING
+    
+    l_pattis_per_main = len(positions)
+    
+    # Calculate number of main rods (from existing main rod calculation)
     main_rods = ceil((length - 4) / 4) + 1
-    pieces_per_main = ceil(length / SPACING)
-    total_pieces_needed = main_rods * 3
     
+    # Total L-patti cuts needed (l_pattis_per_main × number of main rods)
+    total_cuts_needed = l_pattis_per_main * main_rods
+    
+    # Calculate full L-patti pieces needed
     pieces_per_l_patti = int(L_PATTI_LENGTH / linter_spacing)
+    full_l_patti_needed = ceil(total_cuts_needed / pieces_per_l_patti)
     
-    full_l_patti_needed = ceil(total_pieces_needed / pieces_per_l_patti)
-    
+    # Calculate remaining pieces
     total_pieces_available = full_l_patti_needed * pieces_per_l_patti
-    remaining_pieces = total_pieces_available - total_pieces_needed
+    remaining_pieces = total_pieces_available - total_cuts_needed
     
-    return (full_l_patti_needed, total_pieces_needed, remaining_pieces, linter_spacing)
+    return (full_l_patti_needed, total_cuts_needed, remaining_pieces, linter_spacing)
 
 def calculate_board_requirements(dimensions: RoomDimensions) -> tuple[float, float]:
     BOARD_LENGTH = 6
