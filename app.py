@@ -55,7 +55,7 @@ def main():
     )
     
     linter_spacing = st.number_input(
-        f'Linter Spacing (Chad to Main Rod Height) ({unit})',
+        f'Linter Spacing ({unit})',
         min_value=0.0,
         help="Distance from Chad to the starting width of Main/Enter"
     )
@@ -65,11 +65,11 @@ def main():
     
     with col1:
         length1 = st.number_input(f'Wall 1 Length ({unit})', min_value=0.0)
-        width1 = st.number_input(f'Width 1 ({unit})', min_value=0.0)
+        width1 = st.number_input(f'Wall 1 Width ({unit})', min_value=0.0)
     
     with col2:
         length2 = st.number_input(f'Wall 2 Length ({unit})', min_value=0.0)
-        width2 = st.number_input(f'Width 2 ({unit})', min_value=0.0)
+        width2 = st.number_input(f'Wall 2 Width ({unit})', min_value=0.0)
 
     if st.button('Calculate'):
         dimensions = RoomDimensions(
