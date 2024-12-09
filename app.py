@@ -46,7 +46,8 @@ def generate_excel_download(calc_results):
     return buffer.getvalue()
 
 def main():
-    st.title('False Ceiling Calculator')
+    st.set_page_config(page_title='Ceiling Design Calculator')
+    st.title('Ceiling Design Calculator')
     
     unit = st.selectbox(
         'Select measurement unit:',
