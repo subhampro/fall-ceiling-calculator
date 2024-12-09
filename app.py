@@ -5,6 +5,7 @@ from decimal import Decimal
 import base64
 from io import BytesIO
 from utils import RoomDimensions, calculate_ceiling_requirements
+from translations import HINGLISH_TRANSLATIONS as TR
 
 def convert_to_feet(value, unit):
     conversion = {
@@ -46,21 +47,21 @@ def generate_excel_download(calc_results):
     return buffer.getvalue()
 
 def convert_to_hinglish():
-    st.title('Ceiling Design Calculator (Hinglish)')
-    unit = st.selectbox('Measurement unit chuno:', ['ft', 'mm', 'cm', 'inches', 'm', 'yd'])
-    linter_spacing = st.number_input('Linter Spacing (Chad se Main Rod ki Height) (unit)', min_value=0.0, help="Distance from Roof/Linter to the Main/Enter")
-    st.subheader('Room Measurements (Kamre ki Maap)')
+    st.title(TR['calculator_title'])
+    unit = st.selectbox(TR['select_unit'], ['ft', 'mm', 'cm', 'inches', 'm', 'yd'])
+    linter_spacing = st.number_input(f"{TR['linter_spacing']} ({unit})", min_value=0.0)
+    st.subheader(TR['room_measurements'])
     col1, col2 = st.columns(2)
     
     with col1:
-        length1 = st.number_input(f'Deewar 1 Lambai ({unit})', min_value=0.0)
-        width1 = st.number_input(f'Deewar 1 Chaudai ({unit})', min_value=0.0)
+        length1 = st.number_input(f'{TR["wall1_length"]} ({unit})', min_value=0.0)
+        width1 = st.number_input(f'{TR["wall1_width"]} ({unit})', min_value=0.0)
     
     with col2:
-        length2 = st.number_input(f'Deewar 2 Lambai ({unit})', min_value=0.0)
-        width2 = st.number_input(f'Deewar 2 Chaudai ({unit})', min_value=0.0)
+        length2 = st.number_input(f'{TR["wall2_length"]} ({unit})', min_value=0.0)
+        width2 = st.number_input(f'{TR["wall2_width"]} ({unit})', min_value=0.0)
 
-    if st.button('Ganit karo'):
+    if st.button(TR['calculate_button']):
         dimensions = RoomDimensions(
             convert_to_feet(length1, unit),
             convert_to_feet(length2, unit),
@@ -71,56 +72,56 @@ def convert_to_hinglish():
         
         results = calculate_ceiling_requirements(dimensions)
         
-        st.subheader('Calculation Results (Ganit ke Parinaam)')
+        st.subheader(TR['calculation_results'])
         
-        st.write("### Parameters (1 inch × 1 inch Steel Rods) (Parameters ke Maap)")
-        st.write(f"Kul Parameter Lambai: {results.total_parameter_length:.2f} ft")
-        st.write(f"Poore Parameters (12ft wale): {results.parameters_full}")
+        st.write(TR['parameters_title'])
+        st.write(f"{TR['total_parameter_length']}: {results.total_parameter_length:.2f} ft")
+        st.write(f"{TR['full_parameters']}: {results.parameters_full}")
         if results.parameters_extra > 0:
-            st.write(f"Extra Parameter Lambai: {results.parameters_extra:.2f} ft (4 inch overlap ke saath)")
+            st.write(f"{TR['extra_parameter_length']}: {results.parameters_extra:.2f} ft ({TR['overlap']})")
         
-        st.write("### Main/Enter Rods (1 inch × 2 inch) (Mukhya Rod)")
-        st.write(f"Mukhya Rod ki Sankhya: {len(results.main_lengths)}")
+        st.write(TR['main_rods_title'])
+        st.write(f"{TR['number_of_main_rods']}: {len(results.main_lengths)}")
         if results.extra_main_needed:
             extra_length = float(results.extra_main_needed.split()[0])
             extra_rods = ceil(extra_length / 12)
-            st.write(f"Extra Mukhya Rod ki Jarurat: {extra_rods}")
-            st.write(f"Kul Mukhya Rod ki Jarurat: {len(results.main_lengths) + extra_rods}")
-        st.write(f"Mukhya Rod ka Vivaran:")
-        st.write("- Pehla rod: deewar se 2ft")
-        st.write("- Rod ke beech ki doori: 4ft")
+            st.write(f"{TR['extra_main_rods_needed']}: {extra_rods}")
+            st.write(f"{TR['total_main_rods_needed']}: {len(results.main_lengths) + extra_rods}")
+        st.write(TR['main_rods_details'])
+        st.write(f"- {TR['first_rod']}: 2ft")
+        st.write(f"- {TR['spacing_between_rods']}: 4ft")
         for i, length in enumerate(results.main_lengths):
-            st.write(f"- Mukhya {i+1}: {length:.2f} ft")
-        st.write(f"- Antim Mukhya Lambai: {results.last_main_length:.2f} ft")
+            st.write(f"- {TR['main_rod']} {i+1}: {length:.2f} ft")
+        st.write(f"- {TR['last_main_length']}: {results.last_main_length:.2f} ft")
         
-        st.write("### Cross Rods (3 inch × 1 inch) (Aadi Rod)")
-        st.write(f"Aadi Rod ki Sankhya: {results.cross_rods}")
-        st.write("Aadi Rod ka Vivaran:")
-        st.write("- Pehla rod: deewar se 2ft")
-        st.write("- Doori: rod ke beech 2ft")
+        st.write(TR['cross_rods_title'])
+        st.write(f"{TR['number_of_cross_rods']}: {results.cross_rods}")
+        st.write(TR['cross_rods_details'])
+        st.write(f"- {TR['first_rod']}: 2ft")
+        st.write(f"- {TR['spacing_between_rods']}: 2ft")
         for i, length in enumerate(results.cross_lengths):
-            st.write(f"- Aadi {i+1}: {length:.2f} ft")
-        st.write(f"- Antim Aadi Lambai: {results.last_cross_length:.2f} ft")
+            st.write(f"- {TR['cross_rod']} {i+1}: {length:.2f} ft")
+        st.write(f"- {TR['last_cross_length']}: {results.last_cross_length:.2f} ft")
         
-        st.write("### Support Materials (Sahayak Samagri)")
-        st.write(f"Poori L-Patti ki Sankhya (8ft): {results.full_l_patti_count}")
-        st.write(f"Katne Wali L-Patti: {results.l_patti_cuts} (Size: {results.l_patti_cut_size:.2f}ft/piece)")
-        st.write(f"Bachi hui Kati L-Patti: {results.l_patti_remaining} ({results.l_patti_cut_size:.2f}ft/piece)")
-        st.write(f"Fastener ki Jarurat: {results.fasteners} (1 per L-patti)")
-        st.write(f"Fastener Clip ki Jarurat: {results.fastener_clips} (1 per fastener)")
-        st.write(f"Nut Bolt Jodi ki Jarurat: {results.fastener_clips} (1 Fastener Clip ke liye 1)")
-        st.write(f"Connecting Clip ki Jarurat: {results.connecting_clips} (Mukhya-Aadi ke milne par)")
+        st.write(TR['support_materials_title'])
+        st.write(f"{TR['full_l_patti_count']}: {results.full_l_patti_count}")
+        st.write(f"{TR['cutting_l_patti']}: {results.l_patti_cuts} ({TR['cut_size']}: {results.l_patti_cut_size:.2f}ft/{TR['piece']})")
+        st.write(f"{TR['remaining_cutted_l_patti']}: {results.l_patti_remaining} ({results.l_patti_cut_size:.2f}ft/{TR['piece']})")
+        st.write(f"{TR['fasteners_needed']}: {results.fasteners} ({TR['per_l_patti']})")
+        st.write(f"{TR['fastener_clips_needed']}: {results.fastener_clips} ({TR['per_fastener']})")
+        st.write(f"{TR['nut_bolt_pair_needed']}: {results.fastener_clips} ({TR['per_fastener_clip']})")
+        st.write(f"{TR['connecting_clips_needed']}: {results.connecting_clips} ({TR['at_main_cross_intersections']})")
         
-        st.write("### Screws (Pech)")
-        st.write(f"Sadhaaran Pech: {results.screws} (parameters par 1ft ki doori)")
-        st.write(f"Kale Pech: {results.black_screws} Box (1000 sqft ke liye 1 Box)")
+        st.write(TR['screws_title'])
+        st.write(f"{TR['regular_screws']}: {results.screws} ({TR['spacing_on_parameters']})")
+        st.write(f"{TR['black_screws']}: {results.black_screws} {TR['box']} ({TR['per_1000_sqft']})")
         
-        st.write("### Plywood Boards (6ft × 4ft x 0.5inch) (Plywood ke Takhte)")
+        st.write(TR['plywood_boards_title'])
         if results.board_extra_sqft > 0:
-            st.write(f"Poore Board ki Jarurat: {int(results.board_count)}")
-            st.write(f"Extra Area ki Jarurat: {results.board_extra_sqft:.2f} sqft ({results.board_extra_sqft/24:.2f} boards)")
+            st.write(f"{TR['full_boards_needed']}: {int(results.board_count)}")
+            st.write(f"{TR['extra_area_needed']}: {results.board_extra_sqft:.2f} sqft ({results.board_extra_sqft/24:.2f} {TR['boards']})")
         else:
-            st.write(f"Poore Board ki Jarurat: {int(results.board_count)}")
+            st.write(f"{TR['full_boards_needed']}: {int(results.board_count)}")
 
 def main():
     st.set_page_config(page_title='Ceiling Design Calculator')
