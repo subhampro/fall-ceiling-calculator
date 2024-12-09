@@ -133,11 +133,11 @@ def main():
     if st.session_state.language == 'English':
         if st.button('Convert to Hinglish'):
             st.session_state.language = 'Hinglish'
-            st.rerun()  # Changed from st.experimental_rerun()
+            st.rerun()
     else:
         if st.button('Convert to English'):
             st.session_state.language = 'English'
-            st.rerun()  # Changed from st.experimental_rerun()
+            st.rerun()
     
     if st.session_state.language == 'Hinglish':
         convert_to_hinglish()

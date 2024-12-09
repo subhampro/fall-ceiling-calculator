@@ -86,10 +86,7 @@ def calculate_main_rods(length1: float, length2: float, width1: float, width2: f
     extra_rods_needed = 0
     
     for pos in positions:
-        # Calculate the percentage of distance along the width
         percentage = pos / width1
-        
-        # Interpolate length based on position
         length_at_pos = length1 + (length2 - length1) * (pos / width1)
         main_lengths.append(length_at_pos)
         
@@ -142,35 +139,31 @@ def calculate_cross_rods(length1: float, length2: float, width1: float, width2: 
     
     return num_cross_rods, cross_lengths, last_cross_length
 
-def calculate_l_patti(length: float, linter_spacing: float) -> tuple[int, int, int, float]:
+def calculate_l_patti(length: float, linter_spacing: float, main_lengths: list[float]) -> tuple[int, int, int, float]:
     L_PATTI_LENGTH = 8
-    FIRST_DISTANCE = 3  # First L-patti at 3ft from wall
-    SPACING = 4         # 4ft spacing between L-pattis
+    FIRST_L_PATTI = 3
+    SPACING = 4
     
-    # Calculate L-patti positions for a single main rod
-    positions = []
-    current_pos = FIRST_DISTANCE
-    while current_pos <= (length - 3):  # Ensure 3ft from end wall
-        positions.append(current_pos)
-        current_pos += SPACING
+    def count_l_pattis_for_main(main_length: float) -> int:
+        current_pos = FIRST_L_PATTI
+        count = 0
+        while current_pos <= (main_length - 1):
+            count += 1
+            current_pos += SPACING
+        return count
     
-    l_pattis_per_main = len(positions)
+    total_l_patti_cuts = 0
+    for main_length in main_lengths:
+        l_pattis_on_this_main = count_l_pattis_for_main(main_length)
+        total_l_patti_cuts += l_pattis_on_this_main
     
-    # Calculate number of main rods
-    main_rods = ceil(length / SPACING)
-    
-    # Total L-patti cuts needed (l_pattis_per_main × number of main rods)
-    total_cuts_needed = l_pattis_per_main * main_rods
-    
-    # Calculate how many full 8ft L-pattis needed
     pieces_per_l_patti = int(L_PATTI_LENGTH / linter_spacing)
-    full_l_patti_needed = ceil(total_cuts_needed / pieces_per_l_patti)
+    full_l_patti_needed = ceil(total_l_patti_cuts / pieces_per_l_patti)
     
-    # Calculate remaining pieces
     total_pieces_available = full_l_patti_needed * pieces_per_l_patti
-    remaining_pieces = total_pieces_available - total_cuts_needed
+    remaining_pieces = total_pieces_available - total_l_patti_cuts
     
-    return (full_l_patti_needed, total_cuts_needed, remaining_pieces, linter_spacing)
+    return (full_l_patti_needed, total_l_patti_cuts, remaining_pieces, linter_spacing)
 
 def calculate_board_requirements(dimensions: RoomDimensions) -> tuple[float, float]:
     BOARD_LENGTH = 6
@@ -211,7 +204,11 @@ def calculate_ceiling_requirements(dimensions: RoomDimensions) -> CeilingCalcula
     
     screws = ceil(total_parameter_length) * 12
     
-    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(max(dimensions.width1, dimensions.width2), dimensions.linter_spacing)
+    full_l_patti, l_patti_cuts, remaining_cuts, cut_size = calculate_l_patti(
+        max(dimensions.width1, dimensions.width2), 
+        dimensions.linter_spacing,
+        main_lengths
+    )
     
     black_screws = l_patti_cuts * 2
     
